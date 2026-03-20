@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: noni-music-backend
+    runtime: node
+    rootDir: server
+    buildCommand: npm install
+    startCommand: node index.js
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: PORT
+        value: 3001
+    healthCheckPath: /api/health

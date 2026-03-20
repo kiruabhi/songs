@@ -1,0 +1,26 @@
+# Noni Music - .gitignore
+
+# Dependencies
+**/node_modules/
+
+# Environment variables (NEVER commit these!)
+**/.env
+!**/.env.example
+
+# SQLite database files
+*.sqlite
+*.db
+
+# Room backup file (regenerates automatically)
+server/rooms_backup.json
+
+# Build outputs
+client/dist/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
