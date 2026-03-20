@@ -5,7 +5,7 @@ const https = require("https");
 const { Server } = require("socket.io");
 const cors = require("cors");
 const ytSearch = require("yt-search");
-const youtubedl = require("youtube-dl-exec");
+const playdl = require("play-dl");
 const jwt = require("jsonwebtoken");
 const fs = require('fs');
 const { dbGet, dbRun, dbQuery } = require("./db");
@@ -255,7 +255,7 @@ app.get("/api/recommendations", async (req, res) => {
   }
 });
 
-// Stream Audio via yt-dlp direct CDN redirect
+// Stream Audio via play-dl direct stream
 app.get("/api/stream/:videoId", async (req, res) => {
   try {
     const videoId = req.params.videoId;
@@ -264,36 +264,21 @@ app.get("/api/stream/:videoId", async (req, res) => {
     }
 
     const ytUrl = `https://www.youtube.com/watch?v=${videoId}`;
-
-    // Extract actual Google Video audio CDN URL
-    const output = await youtubedl(ytUrl, {
-      dumpSingleJson: true,
-      noWarnings: true,
-      preferFreeFormats: true,
-      youtubeSkipDashManifest: true,
+    
+    // Get stream using play-dl (very fast, no binary needed)
+    const stream = await playdl.stream(ytUrl, {
+      quality: 1, // focus on audio quality
+      discordPlayerCompatibility: true
     });
 
-    // Find the best audio-only format
-    const audioFormats = output.formats.filter(f => f.vcodec === 'none' && f.acodec !== 'none');
-    // Sort by best bitrate
-    audioFormats.sort((a, b) => (b.abr || 0) - (a.abr || 0));
-
-    const audioUrl = audioFormats[0]?.url || output.url;
-
-    if (audioUrl) {
-      const headers = {};
-      if (req.headers.range) {
-        headers['Range'] = req.headers.range;
-      }
-
-      https.get(audioUrl, { headers }, (stream) => {
-        res.status(stream.statusCode);
-        ['content-type', 'content-length', 'content-range', 'accept-ranges'].forEach(h => {
-          if (stream.headers[h]) res.header(h, stream.headers[h]);
-        });
-        stream.pipe(res);
-      }).on("error", (err) => {
-        console.error("HTTPS stream error:", err.message);
+    if (stream && stream.stream) {
+      // Set reasonable headers
+      res.header('Content-Type', 'audio/mpeg');
+      // Pipe the internal stream to the response
+      stream.stream.pipe(res);
+      
+      stream.stream.on('error', (err) => {
+        console.error("Play-dl internal stream error:", err.message);
         if (!res.headersSent) res.status(500).send("Stream error");
       });
     } else {
@@ -301,7 +286,7 @@ app.get("/api/stream/:videoId", async (req, res) => {
     }
   } catch (error) {
     console.error("Streaming extraction error:", error.message);
-    if (!res.headersSent) res.status(500).send("Failed to extract audio");
+    if (!res.headersSent) res.status(500).send("Failed to extract audio: " + error.message);
   }
 });
 

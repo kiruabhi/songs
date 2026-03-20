@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
-import { Music, Plus, Play, Pause, SkipForward, SkipBack, Copy, Search, Check, Disc, Volume2, Heart, Repeat, ListMusic, User as UserIcon, LogOut, Users, Compass, Settings, X } from 'lucide-react';
+import { Music, Plus, Play, Pause, SkipForward, SkipBack, Copy, Search, Check, Disc, Heart, Repeat, LogOut, Users, Compass, Settings, X } from 'lucide-react';
 import './index.css';
 
 const BACKEND_URL = import.meta.env.VITE_API_URL || '';
@@ -355,7 +355,7 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
     }, 4000);
 
     const onEnded = () => socket.emit('auto_skip');
-    const onError = (e: any) => {
+    const onError = () => {
       socket.emit('error_skip');
     };
 
