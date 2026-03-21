@@ -29,4 +29,7 @@ services:
     staticPublishPath: dist
     envVars:
       - key: VITE_API_URL
-        value: "https://noni-jam-server.onrender.com" # Replace with your actual server host if different
+        fromService:
+          name: noni-jam-server
+          type: web
+          property: host
