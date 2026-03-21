@@ -254,9 +254,11 @@ app.get("/api/recommendations", async (req, res) => {
   }
 });
 
+app.set('trust proxy', 1); // Trust Render's proxy
+
 const play = require("play-dl");
 
-// Stream Audio via play-dl (more robust for Render/Vercel)
+// Stream Audio via play-dl (more robust and faster for Render)
 app.get("/api/stream/:videoId", async (req, res) => {
   try {
     const videoId = req.params.videoId;
@@ -266,33 +268,29 @@ app.get("/api/stream/:videoId", async (req, res) => {
 
     const ytUrl = `https://www.youtube.com/watch?v=${videoId}`;
     
-    // Fetch stream info using play-dl
-    const info = await play.video_info(ytUrl);
-    const stream = await play.stream_from_info(info, {
-      quality: 2 // Highest audio quality
+    // Fetch stream directly (much faster than info + stream_from_info)
+    const stream = await play.stream(ytUrl, {
+      quality: 2, // Highest audio quality
+      seek: 0
     });
 
-    if (stream && stream.url) {
-      const headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-      };
-      
-      if (req.headers.range) {
-        headers['Range'] = req.headers.range;
+    if (stream && stream.stream) {
+      // Set appropriate audio headers
+      res.setHeader('Content-Type', 'audio/mpeg');
+      if (stream.content_length) {
+        res.setHeader('Content-Length', stream.content_length);
       }
-
-      https.get(stream.url, { headers }, (proxyStream) => {
-        res.status(proxyStream.statusCode || 200);
-        ['content-type', 'content-length', 'content-range', 'accept-ranges', 'cache-control'].forEach(h => {
-          if (proxyStream.headers[h]) res.header(h, proxyStream.headers[h]);
-        });
-        proxyStream.pipe(res);
-      }).on("error", (err) => {
-        console.error("HTTPS stream error:", err.message);
+      
+      // Pipe the stream directly to the response
+      stream.stream.pipe(res);
+      
+      stream.stream.on('error', (err) => {
+        console.error("Stream pipe error:", err.message);
         if (!res.headersSent) res.status(500).send("Stream error");
       });
+
     } else {
-      throw new Error("No stream URL found");
+      throw new Error("No stream found");
     }
 
   } catch (err) {
