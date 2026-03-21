@@ -7,7 +7,6 @@ const cors = require("cors");
 const ytSearch = require("yt-search");
 const youtubedl = require("youtube-dl-exec");
 const jwt = require("jsonwebtoken");
-const jwt = require("jsonwebtoken");
 const fs = require('fs');
 const { dbGet, dbRun, dbQuery } = require("./db");
 
