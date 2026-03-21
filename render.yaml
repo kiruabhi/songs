@@ -1,0 +1,32 @@
+services:
+  # Backend Server
+  - type: web
+    name: noni-jam-server
+    env: node
+    buildCommand: npm install
+    startCommand: npm start
+    rootDir: server
+    envVars:
+      - key: DATABASE_URL
+        sync: false # User will provide this from Neon
+      - key: JWT_SECRET
+        generateValue: true
+      - key: PORT
+        value: 3001
+      - key: ROOMS_BACKUP_PATH
+        value: /var/data/rooms_backup.json
+    disk:
+      name: jam-data
+      mountPath: /var/data
+      sizeGB: 1
+
+  # Frontend Client
+  - type: web
+    name: noni-jam-client
+    env: static
+    rootDir: client
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_URL
+        value: "https://noni-jam-server.onrender.com" # Replace with your actual server host if different

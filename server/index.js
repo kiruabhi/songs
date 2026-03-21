@@ -5,8 +5,9 @@ const https = require("https");
 const { Server } = require("socket.io");
 const cors = require("cors");
 const ytSearch = require("yt-search");
-const playdl = require("play-dl");
+const youtubedl = require("youtube-dl-exec");
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcryptjs");
 const fs = require('fs');
 const { dbGet, dbRun, dbQuery } = require("./db");
 
@@ -27,7 +28,7 @@ const io = new Server(server, {
 
 // --- INTERNAL STATE ---
 let rooms = {};
-const ROOMS_BACKUP_PATH = require('path').resolve(__dirname, 'rooms_backup.json');
+const ROOMS_BACKUP_PATH = process.env.ROOMS_BACKUP_PATH || require('path').resolve(__dirname, 'rooms_backup.json');
 
 // Boot sequence: Restore RAM explicitly from the persistent crash-safe file
 if (fs.existsSync(ROOMS_BACKUP_PATH)) {
@@ -70,9 +71,6 @@ const emitRoomState = (roomId) => {
   io.to(roomId).emit("room_state", room);
 };
 
-// Health check for Render.com
-app.get("/api/health", (req, res) => res.json({ status: "ok", app: "Noni Music" }));
-
 // --- API ROUTES ---
 
 // Search YouTube
@@ -104,11 +102,11 @@ app.post("/api/auth/login", async (req, res) => {
   if (!username || !password) return res.status(400).json({ error: "Missing fields" });
 
   try {
-    const user = await dbGet("SELECT * FROM users WHERE username = ?", [username]);
+    const user = await dbGet("SELECT * FROM users WHERE username = $1", [username]);
     if (!user) return res.status(401).json({ error: "Invalid credentials" });
 
-    // Plain text password comparison
-    if (password !== user.password) return res.status(401).json({ error: "Invalid credentials" });
+    const isValid = bcrypt.compareSync(password, user.password_hash);
+    if (!isValid) return res.status(401).json({ error: "Invalid credentials" });
 
     const payload = { id: user.id, username: user.username, role: user.role };
     const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' });
@@ -131,7 +129,10 @@ app.post("/api/admin/users", async (req, res) => {
     const { username, password, role } = req.body;
     if (!username || !password) return res.status(400).json({ error: "Missing fields" });
 
-    await dbRun("INSERT INTO users (username, password, role) VALUES (?, ?, ?)", [username, password, role || 'user']);
+    const salt = bcrypt.genSaltSync(10);
+    const hash = bcrypt.hashSync(password, salt);
+
+    await dbRun("INSERT INTO users (username, password_hash, role) VALUES ($1, $2, $3)", [username, hash, role || 'user']);
     res.json({ message: "User created successfully" });
   } catch (err) {
     res.status(500).json({ error: "Could not create user (username may already exist)" });
@@ -145,7 +146,7 @@ app.get("/api/likes", async (req, res) => {
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-    const likes = await dbQuery("SELECT song_id as id, title, thumbnail, author, duration, seconds FROM liked_songs WHERE user_id = ?", [decoded.id]);
+    const likes = await dbQuery("SELECT song_id as id, title, thumbnail, author, duration, seconds FROM liked_songs WHERE user_id = $1", [decoded.id]);
     res.json(likes);
   } catch (err) {
     console.error("GET /api/likes error:", err);
@@ -159,7 +160,7 @@ app.get("/api/preferences", async (req, res) => {
   if (!token) return res.status(401).json({ error: "Unauthorized" });
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-    const prefRow = await dbGet("SELECT preferences_json FROM user_preferences WHERE user_id = ?", [decoded.id]);
+    const prefRow = await dbGet("SELECT preferences_json FROM user_preferences WHERE user_id = $1", [decoded.id]);
     res.json(prefRow ? JSON.parse(prefRow.preferences_json) : []);
   } catch (err) {
     res.status(500).json({ error: "Server error" });
@@ -173,7 +174,7 @@ app.post("/api/preferences", async (req, res) => {
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
     const { tags } = req.body;
-    await dbRun("INSERT OR REPLACE INTO user_preferences (user_id, preferences_json) VALUES (?, ?)", [decoded.id, JSON.stringify(tags || [])]);
+    await dbRun("INSERT INTO user_preferences (user_id, preferences_json) VALUES ($1, $2) ON CONFLICT (user_id) DO UPDATE SET preferences_json = EXCLUDED.preferences_json", [decoded.id, JSON.stringify(tags || [])]);
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: "Server error" });
@@ -187,7 +188,7 @@ app.post("/api/likes", async (req, res) => {
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
     const { id, title, thumbnail, author, duration, seconds } = req.body;
-    await dbRun("INSERT INTO liked_songs (user_id, song_id, title, thumbnail, author, duration, seconds) VALUES (?, ?, ?, ?, ?, ?, ?)",
+    await dbRun("INSERT INTO liked_songs (user_id, song_id, title, thumbnail, author, duration, seconds) VALUES ($1, $2, $3, $4, $5, $6, $7)",
       [decoded.id, id, title, thumbnail, author, duration, seconds]);
     res.json({ success: true });
   } catch (err) {
@@ -201,7 +202,7 @@ app.delete("/api/likes/:songId", async (req, res) => {
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-    await dbRun("DELETE FROM liked_songs WHERE user_id = ? AND song_id = ?", [decoded.id, req.params.songId]);
+    await dbRun("DELETE FROM liked_songs WHERE user_id = $1 AND song_id = $2", [decoded.id, req.params.songId]);
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: "Server error" });
@@ -221,8 +222,8 @@ app.get("/api/recommendations", async (req, res) => {
     if (customQuery) {
       query = customQuery + " top songs";
     } else {
-      const likes = await dbQuery("SELECT author FROM liked_songs WHERE user_id = ?", [decoded.id]);
-      const prefRow = await dbGet("SELECT preferences_json FROM user_preferences WHERE user_id = ?", [decoded.id]);
+      const likes = await dbQuery("SELECT author FROM liked_songs WHERE user_id = $1", [decoded.id]);
+      const prefRow = await dbGet("SELECT preferences_json FROM user_preferences WHERE user_id = $1", [decoded.id]);
       const prefs = prefRow ? JSON.parse(prefRow.preferences_json) : [];
 
       let parts = [];
@@ -255,7 +256,7 @@ app.get("/api/recommendations", async (req, res) => {
   }
 });
 
-// Stream Audio via play-dl direct stream
+// Stream Audio via yt-dlp direct CDN redirect
 app.get("/api/stream/:videoId", async (req, res) => {
   try {
     const videoId = req.params.videoId;
@@ -264,21 +265,39 @@ app.get("/api/stream/:videoId", async (req, res) => {
     }
 
     const ytUrl = `https://www.youtube.com/watch?v=${videoId}`;
-    
-    // Get stream using play-dl (very fast, no binary needed)
-    const stream = await playdl.stream(ytUrl, {
-      quality: 1, // focus on audio quality
-      discordPlayerCompatibility: true
+
+    // Extract actual Google Video audio CDN URL
+    const output = await youtubedl(ytUrl, {
+      dumpSingleJson: true,
+      noWarnings: true,
+      preferFreeFormats: true,
+      youtubeSkipDashManifest: true,
+      format: 'bestaudio', // Force high-quality audio
     });
 
-    if (stream && stream.stream) {
-      // Set reasonable headers
-      res.header('Content-Type', 'audio/mpeg');
-      // Pipe the internal stream to the response
-      stream.stream.pipe(res);
-      
-      stream.stream.on('error', (err) => {
-        console.error("Play-dl internal stream error:", err.message);
+    // Find the best audio-only format
+    const audioFormats = output.formats.filter(f => f.vcodec === 'none' && f.acodec !== 'none');
+    // Sort by best bitrate
+    audioFormats.sort((a, b) => (b.abr || 0) - (a.abr || 0));
+
+    const audioUrl = audioFormats[0]?.url || output.url;
+
+    if (audioUrl) {
+      const headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+      };
+      if (req.headers.range) {
+        headers['Range'] = req.headers.range;
+      }
+
+      https.get(audioUrl, { headers }, (stream) => {
+        res.status(stream.statusCode || 200);
+        ['content-type', 'content-length', 'content-range', 'accept-ranges', 'cache-control'].forEach(h => {
+          if (stream.headers[h]) res.header(h, stream.headers[h]);
+        });
+        stream.pipe(res);
+      }).on("error", (err) => {
+        console.error("HTTPS stream error:", err.message);
         if (!res.headersSent) res.status(500).send("Stream error");
       });
     } else {
@@ -286,7 +305,7 @@ app.get("/api/stream/:videoId", async (req, res) => {
     }
   } catch (error) {
     console.error("Streaming extraction error:", error.message);
-    if (!res.headersSent) res.status(500).send("Failed to extract audio: " + error.message);
+    if (!res.headersSent) res.status(500).send("Failed to extract audio");
   }
 });
 

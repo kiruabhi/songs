@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
-import { Music, Plus, Play, Pause, SkipForward, SkipBack, Copy, Search, Check, Disc, Heart, Repeat, LogOut, Users, Compass, Settings, X } from 'lucide-react';
+import { Music, Plus, Play, Pause, SkipForward, SkipBack, Copy, Search, Check, Disc, Volume2, Heart, Repeat, ListMusic, User as UserIcon, LogOut, Users, Compass, Settings, X } from 'lucide-react';
 import './index.css';
 
 const BACKEND_URL = import.meta.env.VITE_API_URL || '';
@@ -137,14 +137,14 @@ function AuthGateway({ onAuth }: { onAuth: (token: string, user: User) => void }
       <form className="glass animate-slide-up" onSubmit={submit} style={{ padding: '40px', maxWidth: '400px', width: '100%', display: 'flex', flexDirection: 'column', gap: '20px' }}>
         <div style={{ textAlign: 'center', marginBottom: '10px' }}>
           <Music size={40} color="var(--accent)" style={{ marginBottom: '10px' }} />
-          <h2 style={{ fontSize: '1.5rem', margin: 0 }}>Spotify Jam Login</h2>
+          <h2 style={{ fontSize: '1.5rem', margin: 0 }}>Noni Jam Login</h2>
         </div>
-        
+
         {error && <div style={{ color: '#ff4444', background: 'rgba(255,0,0,0.1)', padding: '10px', borderRadius: '8px', textAlign: 'center' }}>{error}</div>}
-        
+
         <input className="input" placeholder="Username" required value={username} onChange={e => setUsername(e.target.value)} />
         <input className="input" type="password" placeholder="Password" required value={password} onChange={e => setPassword(e.target.value)} />
-        
+
         <button className="btn" type="submit" style={{ marginTop: '10px' }}>Enter Jam</button>
         <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textAlign: 'center' }}>
           By default, use 'admin' / 'admin123'
@@ -160,7 +160,7 @@ function LandingPage({ user, onLogout, onCreate, onJoin }: { user: User, onLogou
   return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
       <div className="glass animate-slide-up" style={{ padding: '40px', maxWidth: '400px', width: '100%', textAlign: 'center', position: 'relative' }}>
-        
+
         <button className="btn secondary" onClick={onLogout} style={{ position: 'absolute', top: '15px', right: '15px', padding: '8px' }}>
           <LogOut size={16} />
         </button>
@@ -168,8 +168,8 @@ function LandingPage({ user, onLogout, onCreate, onJoin }: { user: User, onLogou
         <div style={{ background: 'rgba(29, 185, 84, 0.2)', width: '80px', height: '80px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', color: 'var(--accent)' }}>
           <Music size={40} />
         </div>
-        <h1 style={{ marginBottom: '5px', fontSize: '2rem' }}>Spotify Jam</h1>
-        <p style={{ color: 'var(--text-muted)', marginBottom: '30px', fontSize: '0.9rem' }}>Welcome, <span style={{color: '#fff', fontWeight: 'bold'}}>{user.username}</span>!</p>
+        <h1 style={{ marginBottom: '5px', fontSize: '2rem' }}>Noni Jam</h1>
+        <p style={{ color: 'var(--text-muted)', marginBottom: '30px', fontSize: '0.9rem' }}>Welcome, <span style={{ color: '#fff', fontWeight: 'bold' }}>{user.username}</span>!</p>
 
         <button className="btn" onClick={onCreate} style={{ width: '100%', marginBottom: '20px' }}>
           Start a new Jam
@@ -204,7 +204,7 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
   const [syncTime, setSyncTime] = useState(0);
   const [discoverQuery, setDiscoverQuery] = useState('');
   const [showFullPlayer, setShowFullPlayer] = useState(false);
-  
+
   const [showPrefModal, setShowPrefModal] = useState(false);
   const [preferences, setPreferences] = useState<string[]>([]);
   const [newPref, setNewPref] = useState('');
@@ -224,22 +224,23 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
     fetch(`${BACKEND_URL}/api/likes`, { headers: { 'Authorization': `Bearer ${token}` } })
       .then(r => r.json())
       .then(data => { if (Array.isArray(data)) setLikedSongs(data); })
-      .catch(()=>{});
+      .catch(() => { });
 
     // Fetch Discover Preferences
     fetch(`${BACKEND_URL}/api/preferences`, { headers: { 'Authorization': `Bearer ${token}` } })
       .then(r => r.json())
       .then(data => { if (Array.isArray(data)) setPreferences(data); })
-      .catch(()=>{});
+      .catch(() => { });
   }, [token]);
 
   const fetchRecommendations = async (overrideQuery?: string) => {
     if (!token) return;
     setLoadingRecommendations(true);
     try {
-      const url = new URL(`${BACKEND_URL}/api/recommendations`);
+      const baseUrl = BACKEND_URL || window.location.origin;
+      const url = new URL(`${baseUrl}/api/recommendations`);
       if (overrideQuery) url.searchParams.append("q", overrideQuery);
-      
+
       const res = await fetch(url.toString(), {
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -262,14 +263,14 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
   const toggleLike = async (song: Song | null) => {
     if (!song) return;
     const isLiked = likedSongs.some(s => s.id === song.id);
-    
+
     if (isLiked) {
       setLikedSongs(prev => prev.filter(s => s.id !== song.id));
       await fetch(`${BACKEND_URL}/api/likes/${song.id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
     } else {
       setLikedSongs(prev => [...prev, song]);
-      await fetch(`${BACKEND_URL}/api/likes`, { 
-        method: 'POST', 
+      await fetch(`${BACKEND_URL}/api/likes`, {
+        method: 'POST',
         headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify(song)
       });
@@ -311,14 +312,14 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
               }
             };
             if (newState.isPlaying && !localPauseRef.current) {
-              audio.play().catch(() => {});
+              audio.play().catch(() => { });
             }
           } else {
             audio.pause();
             audio.removeAttribute('src');
           }
         } else if (newState.isPlaying && audio.paused && audio.src && !localPauseRef.current) {
-          audio.play().catch(() => {});
+          audio.play().catch(() => { });
         } else if (!newState.isPlaying && !audio.paused) {
           audio.pause();
         }
@@ -331,7 +332,7 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
         audio.currentTime = currentTime;
       }
       if (isPlaying && audio.paused && audio.src && audio.readyState > 0 && !localPauseRef.current) {
-        audio.play().catch(() => {});
+        audio.play().catch(() => { });
       }
       if (!isPlaying && !audio.paused) {
         audio.pause();
@@ -355,7 +356,7 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
     }, 4000);
 
     const onEnded = () => socket.emit('auto_skip');
-    const onError = () => {
+    const onError = (e: any) => {
       socket.emit('error_skip');
     };
 
@@ -375,7 +376,7 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
   }, [socket, audio]);
 
   const copyLink = () => {
-    navigator.clipboard.writeText(window.location.href);
+    navigator.clipboard.writeText(roomId);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -388,7 +389,7 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
       const res = await fetch(`${BACKEND_URL}/api/search?q=${encodeURIComponent(searchQuery)}`);
       const data = await res.json();
       setSearchResults(data);
-    } catch(err) {}
+    } catch (err) { }
     setSearching(false);
   };
 
@@ -419,7 +420,7 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
       } else {
         if (state.isPlaying && audio.src) {
           audio.currentTime = syncTime; // Snap accurate time instantly on unpause
-          audio.play().catch(()=>{});
+          audio.play().catch(() => { });
         }
       }
     }
@@ -444,7 +445,7 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
 
   const skip = () => { socket.emit('skip_song', true) };
   const previous = () => { socket.emit('previous_song') };
-  const toggleLoop = () => { if(isHostOrAdmin) socket.emit('loop_toggle') };
+  const toggleLoop = () => { if (isHostOrAdmin) socket.emit('loop_toggle') };
 
   const seek = (e: React.ChangeEvent<HTMLInputElement>) => {
     const time = Number(e.target.value);
@@ -462,11 +463,11 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
         <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <Music color="var(--accent)" />
-            <h2 style={{ fontSize: '1.2rem', margin: 0, fontWeight: 700 }}>Noni Music</h2>
-            <span style={{ background: 'rgba(255,255,255,0.1)', padding: '4px 8px', borderRadius: '4px', fontSize: '0.8rem' }}>#{roomId}</span>
+            <h2 style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>Noni Music</h2>
+            <span style={{ background: 'rgba(255,255,255,0.1)', padding: '4px 10px', borderRadius: '4px', fontSize: '0.9rem', color: 'var(--accent)', fontWeight: 'bold', border: '1px solid rgba(29, 185, 84, 0.3)' }}>#{roomId}</span>
           </div>
 
-          <div 
+          <div
             style={{ display: 'flex', gap: '5px', marginLeft: '10px', overflowX: 'auto', paddingBottom: '2px', cursor: 'pointer' }}
             onClick={() => setShowParticipants(true)}
           >
@@ -497,10 +498,10 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
 
         <div style={{ display: 'flex', gap: '10px' }}>
           <button className="btn secondary" onClick={copyLink} style={{ padding: '8px 16px', fontSize: '0.9rem' }}>
-            {copied ? <Check size={16} /> : <Copy size={16} />} 
+            {copied ? <Check size={16} /> : <Copy size={16} />}
           </button>
           <button className="btn secondary" onClick={onLogout} style={{ padding: '8px 16px', fontSize: '0.9rem', color: '#ff4444' }}>
-            <LogOut size={16} /> 
+            <LogOut size={16} />
           </button>
         </div>
       </header>
@@ -508,13 +509,13 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
       {/* MAIN CONTENT */}
       <div style={{ flex: 1, display: 'flex', gap: '20px', padding: '0 20px', overflow: 'hidden' }}>
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '20px', overflow: 'hidden' }}>
-          
+
           <div className="glass" style={{ padding: '20px', display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
-            
+
             {activeTab === 'room' && (
               <>
                 <form onSubmit={search} style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
-                  <input className="input" placeholder="Search songs on YouTube..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
+                  <input className="input" placeholder="Search songs on Noni Music..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
                   <button className="btn" type="submit" disabled={searching}><Search size={20} /></button>
                 </form>
 
@@ -572,9 +573,9 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
                     <Settings size={14} /> Tune Algorithm
                   </button>
                 </div>
-                
+
                 <p style={{ color: 'var(--text-muted)', marginBottom: '15px', fontSize: '0.9rem' }}>Personalized recommendations based on your liked songs and library trends.</p>
-                
+
                 <form onSubmit={e => { e.preventDefault(); fetchRecommendations(discoverQuery); }} style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
                   <input className="input" placeholder="Search a mood, artist, or genre..." value={discoverQuery} onChange={e => setDiscoverQuery(e.target.value)} />
                   <button className="btn" type="submit" disabled={loadingRecommendations}><Search size={20} /></button>
@@ -656,10 +657,10 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
         {state.currentSong ? (
           <>
             {/* Thumbnail — tap to open full-screen player */}
-            <img 
-              src={state.currentSong.thumbnail} 
-              alt="cover" 
-              style={{ width: '52px', height: '52px', borderRadius: '8px', objectFit: 'cover', flexShrink: 0, cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.5)' }} 
+            <img
+              src={state.currentSong.thumbnail}
+              alt="cover"
+              style={{ width: '52px', height: '52px', borderRadius: '8px', objectFit: 'cover', flexShrink: 0, cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.5)' }}
               onClick={() => setShowFullPlayer(true)}
               title="Expand player"
             />
@@ -796,7 +797,7 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
               <h3 style={{ margin: 0, fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '10px' }}><Users size={20} color="var(--accent)" /> Room Participants</h3>
               <button className="btn secondary" onClick={() => setShowParticipants(false)} style={{ padding: '4px 8px', fontSize: '0.8rem' }}>Close</button>
             </div>
-            
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '300px', overflowY: 'auto', paddingRight: '10px' }}>
               {state.activeUsers?.map(u => (
                 <div key={u.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px' }}>
@@ -828,7 +829,7 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
             </button>
             <h3 style={{ marginTop: 0, marginBottom: '20px' }}><Settings size={18} style={{ marginRight: '8px', verticalAlign: 'middle' }} /> Algorithm Tuning</h3>
             <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '15px' }}>Add specific artists, genres, or moods to tightly focus your Discover feed.</p>
-            
+
             <form onSubmit={addPref} style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
               <input className="input" placeholder="e.g. Synthwave" value={newPref} onChange={e => setNewPref(e.target.value)} style={{ flex: 1 }} />
               <button type="submit" className="btn secondary">Add</button>
@@ -836,7 +837,7 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
 
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', maxHeight: '200px', overflowY: 'auto' }}>
               {preferences.length === 0 ? (
-                 <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>No overriding tags defined.</span>
+                <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>No overriding tags defined.</span>
               ) : preferences.map(t => (
                 <div key={t} style={{ display: 'flex', alignItems: 'center', gap: '5px', background: 'rgba(255,255,255,0.1)', padding: '5px 10px', borderRadius: '20px', fontSize: '0.85rem' }}>
                   {t}
@@ -844,7 +845,7 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
                 </div>
               ))}
             </div>
-            
+
             <div style={{ marginTop: '20px', textAlign: 'right' }}>
               <button className="btn" onClick={() => { setShowPrefModal(false); fetchRecommendations(); }}>Compile Matrix</button>
             </div>

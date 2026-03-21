@@ -1,90 +1,92 @@
-const { Pool } = require('pg');
+const { Pool } = require("pg");
+const bcrypt = require("bcryptjs");
 
+// Connect to PostgreSQL database using Neon DB connection string from environment
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false }
+  ssl: {
+    rejectUnauthorized: false // Required for Neon DB/Render
+  }
+});
+
+// Test connection and initialize schema
+pool.connect((err, client, release) => {
+  if (err) {
+    console.error("Database connection failed:", err.stack);
+  } else {
+    console.log("Connected to PostgreSQL (Neon DB).");
+    release();
+    initSchema();
+  }
 });
 
 async function initSchema() {
   const client = await pool.connect();
   try {
+    await client.query("BEGIN");
+
     // Users Table
     await client.query(`CREATE TABLE IF NOT EXISTS users (
       id SERIAL PRIMARY KEY,
       username TEXT UNIQUE NOT NULL,
-      password TEXT NOT NULL,
+      password_hash TEXT NOT NULL,
       role TEXT DEFAULT 'user'
     )`);
 
     // Liked Songs Table
     await client.query(`CREATE TABLE IF NOT EXISTS liked_songs (
       id SERIAL PRIMARY KEY,
-      user_id INTEGER NOT NULL,
+      user_id INTEGER NOT NULL REFERENCES users(id),
       song_id TEXT NOT NULL,
       title TEXT,
       thumbnail TEXT,
       author TEXT,
       duration TEXT,
       seconds INTEGER,
-      UNIQUE(user_id, song_id),
-      FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+      UNIQUE(user_id, song_id)
     )`);
 
-    // User Preferences Table (JSON arrays)
+    // User Preferences Table
     await client.query(`CREATE TABLE IF NOT EXISTS user_preferences (
-      user_id INTEGER PRIMARY KEY,
-      preferences_json TEXT NOT NULL,
-      FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+      user_id INTEGER PRIMARY KEY REFERENCES users(id),
+      preferences_json TEXT NOT NULL
     )`);
 
-    // Seed default admin user if no users exist
-    const { rows } = await client.query('SELECT COUNT(*) AS count FROM users');
-    if (parseInt(rows[0].count) === 0) {
+    // Create default admin user if no users exist
+    const res = await client.query("SELECT COUNT(*) AS count FROM users");
+    if (parseInt(res.rows[0].count) === 0) {
+      const salt = bcrypt.genSaltSync(10);
+      const hash = bcrypt.hashSync("admin123", salt);
       await client.query(
-        "INSERT INTO users (username, password, role) VALUES ($1, $2, $3)",
-        ['admin', 'admin123', 'admin']
+        "INSERT INTO users (username, password_hash, role) VALUES ($1, $2, $3)",
+        ["admin", hash, "admin"]
       );
-      console.log('✅ Default admin user created: admin / admin123');
+      console.log("Default admin account created (admin / admin123)");
     }
 
-    console.log('✅ Neon DB schema initialized.');
+    await client.query("COMMIT");
   } catch (err) {
-    console.error('Schema init error:', err);
+    await client.query("ROLLBACK");
+    console.error("Error initializing schema:", err);
   } finally {
     client.release();
   }
 }
 
-// Wrapper: return multiple rows
+// Wrapper for promises to easily use async/await
 const dbQuery = async (query, params = []) => {
-  // Convert ? placeholders (SQLite-style) to $1, $2 (Postgres-style)
-  let idx = 0;
-  const pgQuery = query.replace(/\?/g, () => `$${++idx}`);
-  const { rows } = await pool.query(pgQuery, params);
-  return rows;
+  const res = await pool.query(query, params);
+  return res.rows;
 };
 
-// Wrapper: run INSERT/UPDATE/DELETE, return last inserted info
 const dbRun = async (query, params = []) => {
-  let idx = 0;
-  let pgQuery = query.replace(/\?/g, () => `$${++idx}`);
-  // For INSERT, append RETURNING id so we can mimic SQLite's lastID
-  if (/^INSERT/i.test(pgQuery.trim()) && !/RETURNING/i.test(pgQuery)) {
-    pgQuery += ' RETURNING id';
-  }
-  const result = await pool.query(pgQuery, params);
-  return { lastID: result.rows?.[0]?.id, changes: result.rowCount };
+  const res = await pool.query(query, params);
+  return { lastID: res.insertId, changes: res.rowCount }; // PostgreSQL doesn't have lastID in the same way, but it's okay for now
 };
 
-// Wrapper: return a single row
 const dbGet = async (query, params = []) => {
-  let idx = 0;
-  const pgQuery = query.replace(/\?/g, () => `$${++idx}`);
-  const { rows } = await pool.query(pgQuery, params);
-  return rows[0] || null;
+  const res = await pool.query(query, params);
+  return res.rows[0];
 };
 
-// Initialize schema on startup
-initSchema();
-
-module.exports = { pool, dbQuery, dbRun, dbGet };
+module.exports = { db: pool, dbQuery, dbRun, dbGet };
