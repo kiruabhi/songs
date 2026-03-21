@@ -305,6 +305,7 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
       setState(prevState => {
         if (newState.currentSong?.id !== prevState.currentSong?.id) {
           if (newState.currentSong) {
+            audio.crossOrigin = "anonymous";
             audio.src = `${BACKEND_URL}/api/stream/${newState.currentSong.id}`;
             audio.onloadedmetadata = () => {
               if (Math.abs(audio.currentTime - newState.currentTime) > 1) {
