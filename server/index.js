@@ -267,6 +267,30 @@ app.set('trust proxy', 1); // Trust Render's proxy
 
 const ytdl = require("@distube/ytdl-core");
 
+function parseCookieString(cookieStr) {
+  if (!cookieStr) return [];
+  return cookieStr.split(';').map(cookie => {
+    let [name, ...rest] = cookie.trim().split('=');
+    return {
+      name: name,
+      value: rest.join('='),
+      domain: '.youtube.com',
+      path: '/'
+    };
+  });
+}
+
+let ytdlAgent = null;
+if (process.env.YOUTUBE_COOKIE) {
+  try {
+    const cookies = parseCookieString(process.env.YOUTUBE_COOKIE);
+    ytdlAgent = ytdl.createAgent(cookies);
+    console.log("YouTube cookies parsed and ytdl agent created.");
+  } catch (err) {
+    console.error("Failed to create ytdl agent from cookie:", err);
+  }
+}
+
 // Stream Audio using only ytdl-core (play-dl causes unhandled crashes on 429)
 app.get("/api/stream/:videoId", async (req, res) => {
   const videoId = req.params.videoId;
@@ -279,16 +303,13 @@ app.get("/api/stream/:videoId", async (req, res) => {
   try {
     console.log(`[Stream] Attempting to stream with ytdl-core for ${videoId}...`);
     
-    // Validate custom cookie format if provided
-    let cookie = process.env.YOUTUBE_COOKIE || '';
-    
     const stream = ytdl(ytUrl, {
       filter: 'audioonly',
       quality: 'highestaudio',
       highWaterMark: 1 << 25, // 32MB buffer
+      agent: ytdlAgent,
       requestOptions: {
         headers: {
-          'Cookie': cookie,
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
         }
       }
