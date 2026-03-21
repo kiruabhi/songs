@@ -71,6 +71,9 @@ const emitRoomState = (roomId) => {
 };
 
 // --- API ROUTES ---
+app.get("/", (req, res) => {
+  res.send("<h1>Noni Jam API is Online 🎵</h1><p>The server is running perfectly.</p>");
+});
 
 // Search YouTube
 app.get("/api/search", async (req, res) => {

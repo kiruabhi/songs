@@ -3,7 +3,7 @@ import { io, Socket } from 'socket.io-client';
 import { Music, Plus, Play, Pause, SkipForward, SkipBack, Copy, Search, Check, Disc, Heart, Repeat, LogOut, Users, Compass, Settings, X } from 'lucide-react';
 import './index.css';
 
-const BACKEND_URL = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
+const BACKEND_URL = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '');
 
 type User = {
   id: number;
