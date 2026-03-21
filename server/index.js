@@ -257,46 +257,75 @@ app.get("/api/recommendations", async (req, res) => {
 app.set('trust proxy', 1); // Trust Render's proxy
 
 const play = require("play-dl");
+const ytdl = require("@distube/ytdl-core");
 
-// Stream Audio via play-dl (more robust and faster for Render)
-app.get("/api/stream/:videoId", async (req, res) => {
+// Configure play-dl with cookies if available to bypass 429 errors
+if (process.env.YOUTUBE_COOKIE) {
   try {
-    const videoId = req.params.videoId;
-    if (!videoId || videoId.length !== 11) {
-      return res.status(400).send("Invalid video ID");
-    }
+    play.setToken({
+      youtube: {
+        cookie: process.env.YOUTUBE_COOKIE
+      }
+    });
+    console.log("YouTube cookies configured for play-dl.");
+  } catch (err) {
+    console.warn("Failed to set YouTube cookie:", err.message);
+  }
+}
 
-    const ytUrl = `https://www.youtube.com/watch?v=${videoId}`;
+// Stream Audio with multi-provider fallback (play-dl -> ytdl-core)
+app.get("/api/stream/:videoId", async (req, res) => {
+  const videoId = req.params.videoId;
+  if (!videoId || videoId.length !== 11) {
+    return res.status(400).send("Invalid video ID");
+  }
+
+  const ytUrl = `https://www.youtube.com/watch?v=${videoId}`;
+
+  // PRIMARY ATTEMPT: play-dl (fastest)
+  try {
+    console.log(`[Stream] Attempting play-dl for ${videoId}...`);
+    const stream = await play.stream(ytUrl, { quality: 2, seek: 0 });
     
-    // Fetch stream directly (much faster than info + stream_from_info)
-    const stream = await play.stream(ytUrl, {
-      quality: 2, // Highest audio quality
-      seek: 0
+    if (stream && stream.stream) {
+      res.setHeader('Content-Type', 'audio/mpeg');
+      if (stream.content_length) res.setHeader('Content-Length', stream.content_length);
+      return stream.stream.pipe(res);
+    }
+  } catch (err) {
+    console.warn(`[Stream] play-dl failed for ${videoId}:`, err.message);
+    
+    // If it's a 429, we proceed to fallback. Otherwise, we might still try fallback.
+  }
+
+  // SECONDARY ATTEMPT: ytdl-core (often more resilient to 429s on certain versions)
+  try {
+    console.log(`[Stream] Falling back to ytdl-core for ${videoId}...`);
+    const stream = ytdl(ytUrl, {
+      filter: 'audioonly',
+      quality: 'highestaudio',
+      highWaterMark: 1 << 25, // 32MB buffer
+      requestOptions: {
+        headers: {
+          'Cookie': process.env.YOUTUBE_COOKIE || '',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        }
+      }
     });
 
-    if (stream && stream.stream) {
-      // Set appropriate audio headers
-      res.setHeader('Content-Type', 'audio/mpeg');
-      if (stream.content_length) {
-        res.setHeader('Content-Length', stream.content_length);
-      }
-      
-      // Pipe the stream directly to the response
-      stream.stream.pipe(res);
-      
-      stream.stream.on('error', (err) => {
-        console.error("Stream pipe error:", err.message);
-        if (!res.headersSent) res.status(500).send("Stream error");
-      });
+    res.setHeader('Content-Type', 'audio/mpeg');
+    stream.pipe(res);
 
-    } else {
-      throw new Error("No stream found");
-    }
-
+    stream.on('error', (err) => {
+      console.error(`[Stream] ytdl-core pipe error:`, err.message);
+      if (!res.headersSent) res.status(500).send("Streaming failed after fallback.");
+    });
+    return;
   } catch (err) {
-    console.error("Audio extraction failed:", err.message);
+    console.error(`[Stream] Final failure for ${videoId}:`, err.message);
     if (!res.headersSent) {
-      res.status(500).send("Failed to extract audio: " + err.message);
+      res.status(500).send(`Failed to extract audio. Error: ${err.message}. 
+      Tip: YouTube has rate-limited this server's IP. Please provide a YOUTUBE_COOKIE in Render environment variables for a permanent fix.`);
     }
   }
 });
