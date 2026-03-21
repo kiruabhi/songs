@@ -265,33 +265,10 @@ app.get("/api/recommendations", async (req, res) => {
 
 app.set('trust proxy', 1); // Trust Render's proxy
 
-const ytdl = require("@distube/ytdl-core");
+const youtubedl = require("youtube-dl-exec");
+const https = require('https');
 
-function parseCookieString(cookieStr) {
-  if (!cookieStr) return [];
-  return cookieStr.split(';').map(cookie => {
-    let [name, ...rest] = cookie.trim().split('=');
-    return {
-      name: name,
-      value: rest.join('='),
-      domain: '.youtube.com',
-      path: '/'
-    };
-  });
-}
-
-let ytdlAgent = null;
-if (process.env.YOUTUBE_COOKIE) {
-  try {
-    const cookies = parseCookieString(process.env.YOUTUBE_COOKIE);
-    ytdlAgent = ytdl.createAgent(cookies);
-    console.log("YouTube cookies parsed and ytdl agent created.");
-  } catch (err) {
-    console.error("Failed to create ytdl agent from cookie:", err);
-  }
-}
-
-// Stream Audio using only ytdl-core (play-dl causes unhandled crashes on 429)
+// Stream Audio using yt-dlp binary (most robust free anti-429 blocker)
 app.get("/api/stream/:videoId", async (req, res) => {
   const videoId = req.params.videoId;
   if (!videoId || videoId.length !== 11) {
@@ -301,43 +278,67 @@ app.get("/api/stream/:videoId", async (req, res) => {
   const ytUrl = `https://www.youtube.com/watch?v=${videoId}`;
 
   try {
-    console.log(`[Stream] Attempting to stream with ytdl-core for ${videoId}...`);
+    console.log(`[Stream] Attempting yt-dlp extraction for ${videoId}...`);
     
-    const stream = ytdl(ytUrl, {
-      filter: 'audioonly',
-      quality: 'highestaudio',
-      highWaterMark: 1 << 25, // 32MB buffer
-      agent: ytdlAgent,
-      requestOptions: {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+    // yt-dlp options to get the best audio format URL
+    const options = {
+      dumpSingleJson: true,
+      noCheckCertificates: true,
+      noWarnings: true,
+      preferFreeFormats: true,
+      addHeader: [
+        'referer:youtube.com',
+        'user-agent:Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+      ]
+    };
+    
+    if (process.env.YOUTUBE_COOKIE) {
+        // Some formats of cookie passing in yt-dlp (though file is best, we'll try ignoring to test bypasses first)
+        // If needed, we can write it to a temp file, but yt-dlp is often good enough without it!
+    }
+
+    const info = await youtubedl(ytUrl, options);
+
+    // Find the best audio-only format (m4a or webm)
+    const formats = info.formats || [];
+    const bestAudio = formats.reverse().find(f => f.resolution === 'audio only' && f.ext === 'm4a') || 
+                      formats.find(f => f.resolution === 'audio only') || 
+                      formats.find(f => f.ext === 'mp4');
+
+    if (!bestAudio || !bestAudio.url) {
+      throw new Error("No suitable audio stream found by yt-dlp.");
+    }
+
+    console.log(`[Stream] Extracted direct audio URL for ${videoId}. Proxying stream...`);
+
+    // Proxy the stream so the client doesn't get CORS issues from googlevideo.com
+    https.get(bestAudio.url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+      }
+    }, (streamRes) => {
+      res.status(streamRes.statusCode || 200);
+      
+      // Forward crucial headers for the <audio> player
+      ['content-type', 'content-length', 'content-range', 'accept-ranges'].forEach(h => {
+        if (streamRes.headers[h]) {
+          res.setHeader(h, streamRes.headers[h]);
         }
-      }
+      });
+      // Fallback content-type if missing
+      if (!res.getHeader('Content-Type')) res.setHeader('Content-Type', 'audio/mpeg');
+
+      streamRes.pipe(res);
+
+    }).on('error', (err) => {
+      console.error(`[Stream] HTTPS proxy error for ${videoId}:`, err.message);
+      if (!res.headersSent) res.status(500).send("Failed to proxy stream.");
     });
-
-    res.setHeader('Content-Type', 'audio/mpeg');
-
-    stream.on('response', (response) => {
-      // Attach length if available
-      const contentLen = response.headers['content-length'];
-      if (contentLen) {
-        res.setHeader('Content-Length', contentLen);
-      }
-    });
-
-    stream.on('error', (err) => {
-      console.error(`[Stream] ytdl-core stream error for ${videoId}:`, err.message);
-      if (!res.headersSent) {
-        res.status(500).send(`Streaming failed: ${err.message}. If 429, update YOUTUBE_COOKIE.`);
-      }
-    });
-
-    stream.pipe(res);
 
   } catch (err) {
-    console.error(`[Stream] Immediate failure for ${videoId}:`, err.message);
+    console.error(`[Stream] yt-dlp completely failed for ${videoId}:`, err.message);
     if (!res.headersSent) {
-      res.status(500).send(`Failed to initialize stream. Error: ${err.message}`);
+      res.status(500).send(`Failed to extract audio with yt-dlp. Error: ${err.message}`);
     }
   }
 });
