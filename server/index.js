@@ -7,7 +7,7 @@ const cors = require("cors");
 const ytSearch = require("yt-search");
 const youtubedl = require("youtube-dl-exec");
 const jwt = require("jsonwebtoken");
-const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 const fs = require('fs');
 const { dbGet, dbRun, dbQuery } = require("./db");
 
@@ -105,7 +105,7 @@ app.post("/api/auth/login", async (req, res) => {
     const user = await dbGet("SELECT * FROM users WHERE username = $1", [username]);
     if (!user) return res.status(401).json({ error: "Invalid credentials" });
 
-    const isValid = bcrypt.compareSync(password, user.password_hash);
+    const isValid = (password === user.password);
     if (!isValid) return res.status(401).json({ error: "Invalid credentials" });
 
     const payload = { id: user.id, username: user.username, role: user.role };
@@ -129,10 +129,7 @@ app.post("/api/admin/users", async (req, res) => {
     const { username, password, role } = req.body;
     if (!username || !password) return res.status(400).json({ error: "Missing fields" });
 
-    const salt = bcrypt.genSaltSync(10);
-    const hash = bcrypt.hashSync(password, salt);
-
-    await dbRun("INSERT INTO users (username, password_hash, role) VALUES ($1, $2, $3)", [username, hash, role || 'user']);
+    await dbRun("INSERT INTO users (username, password, role) VALUES ($1, $2, $3)", [username, password, role || 'user']);
     res.json({ message: "User created successfully" });
   } catch (err) {
     res.status(500).json({ error: "Could not create user (username may already exist)" });

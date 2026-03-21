@@ -1,11 +1,10 @@
 const { Pool } = require("pg");
-const bcrypt = require("bcryptjs");
 
 // Connect to PostgreSQL database using Neon DB connection string from environment
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: {
-    rejectUnauthorized: false // Required for Neon DB/Render
+    rejectUnauthorized: false
   }
 });
 
@@ -25,11 +24,21 @@ async function initSchema() {
   try {
     await client.query("BEGIN");
 
-    // Users Table
+    // Migrate: Rename password_hash to password if it exists from previous version
+    await client.query(`
+      DO $$
+      BEGIN
+        IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='password_hash') THEN
+          ALTER TABLE users RENAME COLUMN password_hash TO password;
+        END IF;
+      END $$;
+    `);
+
+    // Users Table (Plain text password as requested)
     await client.query(`CREATE TABLE IF NOT EXISTS users (
       id SERIAL PRIMARY KEY,
       username TEXT UNIQUE NOT NULL,
-      password_hash TEXT NOT NULL,
+      password TEXT NOT NULL,
       role TEXT DEFAULT 'user'
     )`);
 
@@ -55,11 +64,9 @@ async function initSchema() {
     // Create default admin user if no users exist
     const res = await client.query("SELECT COUNT(*) AS count FROM users");
     if (parseInt(res.rows[0].count) === 0) {
-      const salt = bcrypt.genSaltSync(10);
-      const hash = bcrypt.hashSync("admin123", salt);
       await client.query(
-        "INSERT INTO users (username, password_hash, role) VALUES ($1, $2, $3)",
-        ["admin", hash, "admin"]
+        "INSERT INTO users (username, password, role) VALUES ($1, $2, $3)",
+        ["admin", "admin123", "admin"]
       );
       console.log("Default admin account created (admin / admin123)");
     }
@@ -68,6 +75,7 @@ async function initSchema() {
   } catch (err) {
     await client.query("ROLLBACK");
     console.error("Error initializing schema:", err);
+    console.log("TIP: If you changed columns, you might need to drop the tables in your Neon console first.");
   } finally {
     client.release();
   }
