@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { Music, Plus, Play, Pause, SkipForward, SkipBack, Copy, Search, Check, Disc, Heart, Repeat, LogOut, Users, Compass, Settings, X } from 'lucide-react';
+import YouTube from 'react-youtube';
 import './index.css';
 
 const BACKEND_URL = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '');
@@ -194,7 +195,7 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
   const [state, setState] = useState<RoomState>({ hostId: 0, activeUsers: [], queue: [], history: [], currentSong: null, isPlaying: false, isLooping: false, currentTime: 0 });
   const [activeTab, setActiveTab] = useState<'room' | 'liked' | 'admin' | 'recommend'>('room');
   const [likedSongs, setLikedSongs] = useState<Song[]>([]);
-  const [audio] = useState(new Audio());
+  const playerRef = useRef<any>(null);
   const [copied, setCopied] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Song[]>([]);
@@ -303,78 +304,55 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
   useEffect(() => {
     socket.on('room_state', (newState: RoomState) => {
       setState(prevState => {
-        if (newState.currentSong?.id !== prevState.currentSong?.id) {
-          if (newState.currentSong) {
-            audio.crossOrigin = "anonymous";
-            audio.src = `${BACKEND_URL}/api/stream/${newState.currentSong.id}`;
-            audio.onloadedmetadata = () => {
-              if (Math.abs(audio.currentTime - newState.currentTime) > 1) {
-                audio.currentTime = newState.currentTime;
-              }
-            };
-            if (newState.isPlaying && !localPauseRef.current) {
-              audio.play().catch(() => { });
+        if (playerRef.current) {
+          if (newState.currentSong?.id === prevState.currentSong?.id) {
+            const currentPlayerTime = playerRef.current.getCurrentTime() || 0;
+            if (Math.abs(currentPlayerTime - newState.currentTime) > 2) {
+              playerRef.current.seekTo(newState.currentTime);
             }
-          } else {
-            audio.pause();
-            audio.removeAttribute('src');
+            if (newState.isPlaying && !localPauseRef.current) {
+              playerRef.current.playVideo();
+            } else if (!newState.isPlaying) {
+              playerRef.current.pauseVideo();
+            }
           }
-        } else if (newState.isPlaying && audio.paused && audio.src && !localPauseRef.current) {
-          audio.play().catch(() => { });
-        } else if (!newState.isPlaying && !audio.paused) {
-          audio.pause();
         }
         return newState;
       });
     });
 
     socket.on('sync_player', ({ isPlaying, currentTime }: { isPlaying: boolean, currentTime: number }) => {
-      if (!localPauseRef.current && audio.readyState > 0 && Math.abs(audio.currentTime - currentTime) > 2) {
-        audio.currentTime = currentTime;
-      }
-      if (isPlaying && audio.paused && audio.src && audio.readyState > 0 && !localPauseRef.current) {
-        audio.play().catch(() => { });
-      }
-      if (!isPlaying && !audio.paused) {
-        audio.pause();
+      if (playerRef.current && !localPauseRef.current) {
+        const pTime = playerRef.current.getCurrentTime() || 0;
+        if (Math.abs(pTime - currentTime) > 2) {
+          playerRef.current.seekTo(currentTime);
+        }
+        if (isPlaying) playerRef.current.playVideo();
+        else playerRef.current.pauseVideo();
       }
       setState(s => ({ ...s, isPlaying, currentTime }));
     });
 
     const interval = setInterval(() => {
-      if (!audio.paused) {
-        setSyncTime(audio.currentTime);
+      if (playerRef.current && playerRef.current.getPlayerState() === 1) { // 1 = playing
+        setSyncTime(playerRef.current.getCurrentTime() || 0);
       }
     }, 1000);
 
-    // Host continuously blasts its time directly to the server to snap guests back into reality
     const hostInterval = setInterval(() => {
-      // Must use functional closure or track manually to avoid stale state
-      // Actually, relying on exact audio.currentTime is best:
-      if (!audio.paused) {
-        socket.emit('host_sync', { currentTime: audio.currentTime });
+      if (playerRef.current && playerRef.current.getPlayerState() === 1) {
+        socket.emit('host_sync', { currentTime: playerRef.current.getCurrentTime() || 0 });
       }
     }, 4000);
-
-    const onEnded = () => socket.emit('auto_skip');
-    const onError = () => {
-      socket.emit('error_skip');
-    };
-
-    audio.addEventListener('ended', onEnded);
-    audio.addEventListener('error', onError);
 
     return () => {
       socket.off('room_state');
       socket.off('sync_player');
       clearInterval(interval);
       clearInterval(hostInterval);
-      audio.removeEventListener('ended', onEnded);
-      audio.removeEventListener('error', onError);
-      audio.pause();
-      audio.src = '';
+      if (playerRef.current) playerRef.current.pauseVideo();
     };
-  }, [socket, audio]);
+  }, [socket]);
 
   const copyLink = () => {
     navigator.clipboard.writeText(roomId);
@@ -412,16 +390,17 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
   const togglePlay = () => {
     const nextState = !state.isPlaying;
     if (isHostOrAdmin) {
-      socket.emit('play_pause', { isPlaying: nextState, currentTime: audio.currentTime });
+      const cTime = playerRef.current ? playerRef.current.getCurrentTime() : 0;
+      socket.emit('play_pause', { isPlaying: nextState, currentTime: cTime });
     } else {
       localPauseRef.current = !localPauseRef.current;
       setIsLocallyPaused(localPauseRef.current);
       if (localPauseRef.current) {
-        audio.pause();
+        if (playerRef.current) playerRef.current.pauseVideo();
       } else {
-        if (state.isPlaying && audio.src) {
-          audio.currentTime = syncTime; // Snap accurate time instantly on unpause
-          audio.play().catch(() => { });
+        if (state.isPlaying && playerRef.current) {
+          playerRef.current.seekTo(syncTime);
+          playerRef.current.playVideo();
         }
       }
     }
@@ -451,7 +430,7 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
   const seek = (e: React.ChangeEvent<HTMLInputElement>) => {
     const time = Number(e.target.value);
     setSyncTime(time);
-    audio.currentTime = time;
+    if (playerRef.current) playerRef.current.seekTo(time);
     socket.emit('seek', { currentTime: time });
   };
 
@@ -459,6 +438,37 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
+      {state.currentSong && (
+        <div style={{ position: 'absolute', left: '-9999px' }}>
+          <YouTube 
+            videoId={state.currentSong.id} 
+            opts={{ height: '1', width: '1', playerVars: { autoplay: 1, playsinline: 1 } }}
+            onReady={(e) => {
+              playerRef.current = e.target;
+              if (state.isPlaying && !localPauseRef.current) {
+                e.target.playVideo();
+              }
+              if (state.currentTime > 0) {
+                e.target.seekTo(state.currentTime);
+              }
+            }}
+            onEnd={() => socket.emit('auto_skip')}
+            onError={() => socket.emit('error_skip')}
+            onStateChange={(e) => {
+              if (e.data === 1) { // 1 = playing
+                const playerState = playerRef.current;
+                if (!state.isPlaying && playerState) {
+                  // YouTube autoplayed when it wasn't supposed to (e.g. host paused but song changed)
+                  if (!isHostOrAdmin) {
+                     // Pause it immediately if the room says it should be paused
+                     playerState.pauseVideo();
+                  }
+                }
+              }
+            }}
+          />
+        </div>
+      )}
       {/* HEADER */}
       <header className="glass" style={{ margin: '20px', padding: '15px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderRadius: '12px', flexWrap: 'wrap', gap: '10px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>

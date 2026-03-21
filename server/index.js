@@ -250,13 +250,6 @@ app.get("/api/recommendations", async (req, res) => {
     const output = await ytSearch(query);
     const videos = output.videos.slice(0, 15).map(v => ({
       id: v.videoId,
-      title: v.title,
-      thumbnail: v.thumbnail,
-      author: v.author.name,
-      duration: v.timestamp,
-      seconds: v.seconds
-    }));
-    res.json(videos);
   } catch (err) {
     console.error("Recommendations error:", err);
     res.status(500).json({ error: "Failed to fetch recommendations: " + err.message });
@@ -265,84 +258,8 @@ app.get("/api/recommendations", async (req, res) => {
 
 app.set('trust proxy', 1); // Trust Render's proxy
 
-const youtubedl = require("youtube-dl-exec");
-
-// Stream Audio using yt-dlp binary (most robust free anti-429 blocker)
-app.get("/api/stream/:videoId", async (req, res) => {
-  const videoId = req.params.videoId;
-  if (!videoId || videoId.length !== 11) {
-    return res.status(400).send("Invalid video ID");
-  }
-
-  const ytUrl = `https://www.youtube.com/watch?v=${videoId}`;
-
-  try {
-    console.log(`[Stream] Attempting yt-dlp extraction for ${videoId}...`);
-    
-    // yt-dlp options to get the best audio format URL
-    const headers = [
-      'referer:youtube.com',
-      'user-agent:Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-    ];
-
-    if (process.env.YOUTUBE_COOKIE) {
-      headers.push(`Cookie:${process.env.YOUTUBE_COOKIE}`);
-      console.log(`[Stream] Injected custom YouTube cookies into yt-dlp for ${videoId}`);
-    }
-
-    const options = {
-      dumpSingleJson: true,
-      noCheckCertificates: true,
-      noWarnings: true,
-      preferFreeFormats: true,
-      addHeader: headers
-    };
-
-    const info = await youtubedl(ytUrl, options);
-
-    // Find the best audio-only format (m4a or webm)
-    const formats = info.formats || [];
-    const bestAudio = formats.reverse().find(f => f.resolution === 'audio only' && f.ext === 'm4a') || 
-                      formats.find(f => f.resolution === 'audio only') || 
-                      formats.find(f => f.ext === 'mp4');
-
-    if (!bestAudio || !bestAudio.url) {
-      throw new Error("No suitable audio stream found by yt-dlp.");
-    }
-
-    console.log(`[Stream] Extracted direct audio URL for ${videoId}. Proxying stream...`);
-
-    // Proxy the stream so the client doesn't get CORS issues from googlevideo.com
-    https.get(bestAudio.url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-      }
-    }, (streamRes) => {
-      res.status(streamRes.statusCode || 200);
-      
-      // Forward crucial headers for the <audio> player
-      ['content-type', 'content-length', 'content-range', 'accept-ranges'].forEach(h => {
-        if (streamRes.headers[h]) {
-          res.setHeader(h, streamRes.headers[h]);
-        }
-      });
-      // Fallback content-type if missing
-      if (!res.getHeader('Content-Type')) res.setHeader('Content-Type', 'audio/mpeg');
-
-      streamRes.pipe(res);
-
-    }).on('error', (err) => {
-      console.error(`[Stream] HTTPS proxy error for ${videoId}:`, err.message);
-      if (!res.headersSent) res.status(500).send("Failed to proxy stream.");
-    });
-
-  } catch (err) {
-    console.error(`[Stream] yt-dlp completely failed for ${videoId}:`, err.message);
-    if (!res.headersSent) {
-      res.status(500).send(`Failed to extract audio with yt-dlp. Error: ${err.message}`);
-    }
-  }
-});
+// Stream Audio is now entirely handled securely on the frontend via official YouTube IFrame API!
+// The backend is purely used for Socket.io synchronization.
 
 // --- SOCKET.IO HANDLERS ---
 io.use((socket, next) => {
