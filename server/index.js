@@ -255,7 +255,9 @@ app.get("/api/recommendations", async (req, res) => {
   }
 });
 
-// Stream Audio via yt-dlp direct CDN redirect
+const play = require("play-dl");
+
+// Stream Audio via play-dl (more robust for Render/Vercel)
 app.get("/api/stream/:videoId", async (req, res) => {
   try {
     const videoId = req.params.videoId;
@@ -264,47 +266,41 @@ app.get("/api/stream/:videoId", async (req, res) => {
     }
 
     const ytUrl = `https://www.youtube.com/watch?v=${videoId}`;
-
-    // Extract actual Google Video audio CDN URL
-    const output = await youtubedl(ytUrl, {
-      dumpSingleJson: true,
-      noWarnings: true,
-      preferFreeFormats: true,
-      youtubeSkipDashManifest: true,
-      format: 'bestaudio', // Force high-quality audio
+    
+    // Fetch stream info using play-dl
+    const info = await play.video_info(ytUrl);
+    const stream = await play.stream_from_info(info, {
+      quality: 2 // Highest audio quality
     });
 
-    // Find the best audio-only format
-    const audioFormats = output.formats.filter(f => f.vcodec === 'none' && f.acodec !== 'none');
-    // Sort by best bitrate
-    audioFormats.sort((a, b) => (b.abr || 0) - (a.abr || 0));
-
-    const audioUrl = audioFormats[0]?.url || output.url;
-
-    if (audioUrl) {
+    if (stream && stream.url) {
       const headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
       };
+      
       if (req.headers.range) {
         headers['Range'] = req.headers.range;
       }
 
-      https.get(audioUrl, { headers }, (stream) => {
-        res.status(stream.statusCode || 200);
+      https.get(stream.url, { headers }, (proxyStream) => {
+        res.status(proxyStream.statusCode || 200);
         ['content-type', 'content-length', 'content-range', 'accept-ranges', 'cache-control'].forEach(h => {
-          if (stream.headers[h]) res.header(h, stream.headers[h]);
+          if (proxyStream.headers[h]) res.header(h, proxyStream.headers[h]);
         });
-        stream.pipe(res);
+        proxyStream.pipe(res);
       }).on("error", (err) => {
         console.error("HTTPS stream error:", err.message);
         if (!res.headersSent) res.status(500).send("Stream error");
       });
     } else {
-      res.status(404).send("No audio stream found");
+      throw new Error("No stream URL found");
     }
-  } catch (error) {
-    console.error("Streaming extraction error:", error.message);
-    if (!res.headersSent) res.status(500).send("Failed to extract audio");
+
+  } catch (err) {
+    console.error("Audio extraction failed:", err.message);
+    if (!res.headersSent) {
+      res.status(500).send("Failed to extract audio: " + err.message);
+    }
   }
 });
 
