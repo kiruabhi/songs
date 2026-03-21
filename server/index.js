@@ -9,6 +9,15 @@ const jwt = require("jsonwebtoken");
 const fs = require('fs');
 const { dbGet, dbRun, dbQuery } = require("./db");
 
+// --- GLOBAL CRASH PREVENTION ---
+// Prevent 'play-dl' or other unhandled promises from crashing the entire server
+process.on('uncaughtException', (err) => {
+  console.error("CRITICAL: Uncaught Exception:", err);
+});
+process.on('unhandledRejection', (reason, promise) => {
+  console.error("CRITICAL: Unhandled Rejection at:", promise, "reason:", reason);
+});
+
 const app = express();
 app.use(cors());
 app.use(express.json()); // for parsed JSON bodies
@@ -256,24 +265,9 @@ app.get("/api/recommendations", async (req, res) => {
 
 app.set('trust proxy', 1); // Trust Render's proxy
 
-const play = require("play-dl");
 const ytdl = require("@distube/ytdl-core");
 
-// Configure play-dl with cookies if available to bypass 429 errors
-if (process.env.YOUTUBE_COOKIE) {
-  try {
-    play.setToken({
-      youtube: {
-        cookie: process.env.YOUTUBE_COOKIE
-      }
-    });
-    console.log("YouTube cookies configured for play-dl.");
-  } catch (err) {
-    console.warn("Failed to set YouTube cookie:", err.message);
-  }
-}
-
-// Stream Audio with multi-provider fallback (play-dl -> ytdl-core)
+// Stream Audio using only ytdl-core (play-dl causes unhandled crashes on 429)
 app.get("/api/stream/:videoId", async (req, res) => {
   const videoId = req.params.videoId;
   if (!videoId || videoId.length !== 11) {
@@ -282,50 +276,47 @@ app.get("/api/stream/:videoId", async (req, res) => {
 
   const ytUrl = `https://www.youtube.com/watch?v=${videoId}`;
 
-  // PRIMARY ATTEMPT: play-dl (fastest)
   try {
-    console.log(`[Stream] Attempting play-dl for ${videoId}...`);
-    const stream = await play.stream(ytUrl, { quality: 2, seek: 0 });
+    console.log(`[Stream] Attempting to stream with ytdl-core for ${videoId}...`);
     
-    if (stream && stream.stream) {
-      res.setHeader('Content-Type', 'audio/mpeg');
-      if (stream.content_length) res.setHeader('Content-Length', stream.content_length);
-      return stream.stream.pipe(res);
-    }
-  } catch (err) {
-    console.warn(`[Stream] play-dl failed for ${videoId}:`, err.message);
+    // Validate custom cookie format if provided
+    let cookie = process.env.YOUTUBE_COOKIE || '';
     
-    // If it's a 429, we proceed to fallback. Otherwise, we might still try fallback.
-  }
-
-  // SECONDARY ATTEMPT: ytdl-core (often more resilient to 429s on certain versions)
-  try {
-    console.log(`[Stream] Falling back to ytdl-core for ${videoId}...`);
     const stream = ytdl(ytUrl, {
       filter: 'audioonly',
       quality: 'highestaudio',
       highWaterMark: 1 << 25, // 32MB buffer
       requestOptions: {
         headers: {
-          'Cookie': process.env.YOUTUBE_COOKIE || '',
+          'Cookie': cookie,
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
         }
       }
     });
 
     res.setHeader('Content-Type', 'audio/mpeg');
-    stream.pipe(res);
+
+    stream.on('response', (response) => {
+      // Attach length if available
+      const contentLen = response.headers['content-length'];
+      if (contentLen) {
+        res.setHeader('Content-Length', contentLen);
+      }
+    });
 
     stream.on('error', (err) => {
-      console.error(`[Stream] ytdl-core pipe error:`, err.message);
-      if (!res.headersSent) res.status(500).send("Streaming failed after fallback.");
+      console.error(`[Stream] ytdl-core stream error for ${videoId}:`, err.message);
+      if (!res.headersSent) {
+        res.status(500).send(`Streaming failed: ${err.message}. If 429, update YOUTUBE_COOKIE.`);
+      }
     });
-    return;
+
+    stream.pipe(res);
+
   } catch (err) {
-    console.error(`[Stream] Final failure for ${videoId}:`, err.message);
+    console.error(`[Stream] Immediate failure for ${videoId}:`, err.message);
     if (!res.headersSent) {
-      res.status(500).send(`Failed to extract audio. Error: ${err.message}. 
-      Tip: YouTube has rate-limited this server's IP. Please provide a YOUTUBE_COOKIE in Render environment variables for a permanent fix.`);
+      res.status(500).send(`Failed to initialize stream. Error: ${err.message}`);
     }
   }
 });
