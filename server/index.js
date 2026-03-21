@@ -266,7 +266,6 @@ app.get("/api/recommendations", async (req, res) => {
 app.set('trust proxy', 1); // Trust Render's proxy
 
 const youtubedl = require("youtube-dl-exec");
-const https = require('https');
 
 // Stream Audio using yt-dlp binary (most robust free anti-429 blocker)
 app.get("/api/stream/:videoId", async (req, res) => {
@@ -281,21 +280,23 @@ app.get("/api/stream/:videoId", async (req, res) => {
     console.log(`[Stream] Attempting yt-dlp extraction for ${videoId}...`);
     
     // yt-dlp options to get the best audio format URL
+    const headers = [
+      'referer:youtube.com',
+      'user-agent:Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+    ];
+
+    if (process.env.YOUTUBE_COOKIE) {
+      headers.push(`Cookie:${process.env.YOUTUBE_COOKIE}`);
+      console.log(`[Stream] Injected custom YouTube cookies into yt-dlp for ${videoId}`);
+    }
+
     const options = {
       dumpSingleJson: true,
       noCheckCertificates: true,
       noWarnings: true,
       preferFreeFormats: true,
-      addHeader: [
-        'referer:youtube.com',
-        'user-agent:Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-      ]
+      addHeader: headers
     };
-    
-    if (process.env.YOUTUBE_COOKIE) {
-        // Some formats of cookie passing in yt-dlp (though file is best, we'll try ignoring to test bypasses first)
-        // If needed, we can write it to a temp file, but yt-dlp is often good enough without it!
-    }
 
     const info = await youtubedl(ytUrl, options);
 

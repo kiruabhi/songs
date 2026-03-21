@@ -1,15 +1,15 @@
 const https = require('https');
 
 const instances = [
-  'pipedapi.kavin.rocks',
-  'pipedapi.syncpundit.io',
-  'piped-api.lunar.icu'
+  'invidious.jing.rocks',
+  'invidious.nerdvpn.de',
+  'invidious.perennialte.ch'
 ];
 
 instances.forEach(host => {
   https.get({
     hostname: host,
-    path: '/streams/1ykU4QkchSE',
+    path: '/api/v1/videos/1ykU4QkchSE',
     headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' }
   }, (res) => {
     let data = '';
@@ -17,14 +17,14 @@ instances.forEach(host => {
     res.on('end', () => {
       try {
         const json = JSON.parse(data);
-        if (json && json.audioStreams) {
-          console.log(`SUCCESS [${host}]: Found ${json.audioStreams.length} audio streams!`);
-          console.log(`Sample URL from ${host}:\n` + json.audioStreams[0].url);
+        const format = json.formatStreams.find(s => s.type.includes('audio/mp4') || s.itag === "140");
+        if (format) {
+          console.log(`SUCCESS [${host}]: URL: ${format.url.substring(0,60)}...`);
         } else {
-          console.log(`FAIL [${host}]: JSON has no stream data.`);
+          console.log(`FAIL [${host}]: No formatStreams found.`);
         }
       } catch (e) {
-        console.log(`FAIL [${host}]: Not JSON or error. (${res.statusCode})`);
+        console.log(`FAIL [${host}]: Could not parse JSON. (${res.statusCode})`);
       }
     });
   }).on('error', err => console.log(`FAIL [${host}]: ${err.message}`));
