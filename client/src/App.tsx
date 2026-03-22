@@ -78,7 +78,7 @@ function App() {
   };
 
   const createRoom = () => {
-    const newRoomId = Math.random().toString(36).substring(2, 8).toUpperCase();
+    const newRoomId = Math.floor(1000 + Math.random() * 9000).toString();
     window.history.pushState({}, '', `/${newRoomId}`);
     joinRoom(newRoomId);
   };
