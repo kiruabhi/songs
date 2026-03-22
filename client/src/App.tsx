@@ -436,6 +436,42 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
 
   const isCurrentLiked = state.currentSong && likedSongs.some(s => s.id === state.currentSong!.id);
 
+  const silentAudioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    // Tiny Base64 silent WAV file allows mobile browsers (Safari/Chrome Android) to keep WebAudio running in background
+    const audio = new window.Audio("data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA");
+    audio.loop = true;
+    silentAudioRef.current = audio;
+    return () => {
+      audio.pause();
+      audio.src = '';
+    };
+  }, []);
+
+  useEffect(() => {
+    if (state.isPlaying && !localPauseRef.current) {
+      silentAudioRef.current?.play().catch(() => {});
+    } else {
+      silentAudioRef.current?.pause();
+    }
+  }, [state.isPlaying, isLocallyPaused]);
+
+  useEffect(() => {
+    if (state.currentSong && 'mediaSession' in navigator) {
+      navigator.mediaSession.metadata = new window.MediaMetadata({
+        title: state.currentSong.title,
+        artist: state.currentSong.author,
+        artwork: [{ src: state.currentSong.thumbnail, sizes: '512x512', type: 'image/jpeg' }]
+      });
+
+      navigator.mediaSession.setActionHandler('play', togglePlay);
+      navigator.mediaSession.setActionHandler('pause', togglePlay);
+      navigator.mediaSession.setActionHandler('nexttrack', skip);
+      navigator.mediaSession.setActionHandler('previoustrack', previous);
+    }
+  }, [state.currentSong]);
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
       {state.currentSong && (
