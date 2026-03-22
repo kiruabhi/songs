@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Noni Music</string>
+    <string name="title_activity_main">Noni Music</string>
+    <string name="package_name">com.nonimusic.app</string>
+    <string name="custom_url_scheme">com.nonimusic.app</string>
+</resources>
