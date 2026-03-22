@@ -250,6 +250,14 @@ app.get("/api/recommendations", async (req, res) => {
     const output = await ytSearch(query);
     const videos = output.videos.slice(0, 15).map(v => ({
       id: v.videoId,
+      title: v.title,
+      thumbnail: v.thumbnail,
+      author: v.author.name,
+      duration: v.timestamp,
+      seconds: v.seconds
+    }));
+
+    res.json(videos);
   } catch (err) {
     console.error("Recommendations error:", err);
     res.status(500).json({ error: "Failed to fetch recommendations: " + err.message });
