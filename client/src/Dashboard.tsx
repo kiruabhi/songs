@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Music, Plus, Play, Pause, SkipForward, SkipBack, Search, LogOut, Heart, Library, ListMusic, Home } from 'lucide-react';
-import './Dashboard.css';
-import { registerPlugin } from '@capacitor/core';
+import './dashboard.css';
+import { registerPlugin, Capacitor } from '@capacitor/core';
+import { BACKEND_URL } from './config';
 const NativeAudio: any = registerPlugin('NativeAudio');
-
-const BACKEND_URL = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '');
+const isNative = Capacitor.isNativePlatform();
 
 export default function Dashboard({ user, onLogout, onCreate, onJoin }: any) {
   const [activeTab, setActiveTab] = useState<'home' | 'search' | 'library'>('home');
@@ -19,6 +19,8 @@ export default function Dashboard({ user, onLogout, onCreate, onJoin }: any) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [syncTime, setSyncTime] = useState(0);
   
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [joinId, setJoinId] = useState('');
   
   useEffect(() => {
@@ -33,14 +35,39 @@ export default function Dashboard({ user, onLogout, onCreate, onJoin }: any) {
       .catch(() => {});
   }, []);
 
-  const search = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!searchQuery) return;
+  const runSearch = async (q: string) => {
+    if (!q.trim()) {
+      setSearchResults([]);
+      return;
+    }
     try {
-      const res = await fetch(`${BACKEND_URL}/api/search?q=${encodeURIComponent(searchQuery)}`);
+      const res = await fetch(`${BACKEND_URL}/api/search?q=${encodeURIComponent(q)}`);
+      if (!res.ok) {
+        setSearchResults([]);
+        return;
+      }
       const data = await res.json();
       setSearchResults(data);
-    } catch (err) { }
+    } catch (err) {
+      setSearchResults([]);
+    }
+  };
+
+  const search = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    runSearch(searchQuery);
+  };
+
+  const onSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setSearchQuery(val);
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    if (val.trim()) {
+      searchDebounceRef.current = setTimeout(() => runSearch(val), 300);
+    } else {
+      setSearchResults([]);
+    }
   };
 
   const playLocal = (song: any) => {
@@ -67,22 +94,36 @@ export default function Dashboard({ user, onLogout, onCreate, onJoin }: any) {
       fetch(`${BACKEND_URL}/api/stream-url/${currentSong.id}`)
         .then(res => res.json())
         .then(data => {
-          if (data.url && isPlaying) {
-             try { NativeAudio.playStream({ url: data.url, title: currentSong.title, artist: currentSong.author }); } catch(e){}
+          if (data.url) {
+            if (isNative) {
+              try { NativeAudio.playStream({ url: data.url, title: currentSong.title, artist: currentSong.author }); } catch(e){}
+            } else if (audioRef.current) {
+              audioRef.current.src = data.url;
+              audioRef.current.currentTime = 0;
+              audioRef.current.play().catch(() => {});
+            }
           }
         })
         .catch(() => {});
     } else {
-      try { NativeAudio.pause(); } catch(e){}
+      if (isNative) { try { NativeAudio.pause(); } catch(e){} }
+      else if (audioRef.current) { audioRef.current.pause(); audioRef.current.src = ''; }
     }
   }, [currentSong?.id]);
 
   useEffect(() => {
-     if (isPlaying) { try { NativeAudio.resume(); } catch(e){} } 
-     else { try { NativeAudio.pause(); } catch(e){} }
+    if (isNative) {
+      if (isPlaying) { try { NativeAudio.resume(); } catch(e){} }
+      else { try { NativeAudio.pause(); } catch(e){} }
+    } else {
+      if (!audioRef.current || !audioRef.current.src) return;
+      if (isPlaying) { audioRef.current.play().catch(() => {}); }
+      else { audioRef.current.pause(); }
+    }
   }, [isPlaying]);
 
   useEffect(() => {
+    if (!isNative) return; // web: onTimeUpdate drives syncTime
     const interval = setInterval(() => {
       if (isPlaying) {
          setSyncTime(prev => {
@@ -101,7 +142,8 @@ export default function Dashboard({ user, onLogout, onCreate, onJoin }: any) {
   const seek = (e: React.ChangeEvent<HTMLInputElement>) => {
     const time = Number(e.target.value);
     setSyncTime(time);
-    try { NativeAudio.seek({ time }); } catch(err){}
+    if (isNative) { try { NativeAudio.seek({ time }); } catch(err){} }
+    else if (audioRef.current) { audioRef.current.currentTime = time; }
   };
 
   const SectionRow = ({ title, items }: { title: string, items: any[] }) => (
@@ -133,6 +175,12 @@ export default function Dashboard({ user, onLogout, onCreate, onJoin }: any) {
 
   return (
     <div className="layout-root">
+      <audio
+        ref={audioRef}
+        style={{ display: 'none' }}
+        onEnded={nextTrack}
+        onTimeUpdate={() => { if (!isNative && audioRef.current) setSyncTime(Math.floor(audioRef.current.currentTime)); }}
+      />
       {/* LEFT SIDEBAR */}
       <nav className="nav-sidebar">
          <div className="brand-logo">
@@ -188,7 +236,7 @@ export default function Dashboard({ user, onLogout, onCreate, onJoin }: any) {
             {activeTab === 'search' && (
               <form className="search-bar-header" onSubmit={search}>
                   <Search size={20} color="#000" />
-                  <input placeholder="What do you want to play?" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} autoFocus />
+                  <input placeholder="What do you want to play?" value={searchQuery} onChange={onSearchChange} autoFocus />
               </form>
             )}
             <div className="user-pill">

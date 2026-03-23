@@ -1,5 +1,6 @@
 require("dotenv").config();
 const express = require("express");
+const { execFile } = require("child_process");
 const http = require("http");
 const https = require("https");
 const { Server } = require("socket.io");
@@ -17,6 +18,16 @@ process.on('uncaughtException', (err) => {
 process.on('unhandledRejection', (reason, promise) => {
   console.error("CRITICAL: Unhandled Rejection at:", promise, "reason:", reason);
 });
+
+
+// --- PLAY-DL COOKIES (Optional but recommended) ---
+const playdl = require("play-dl");
+if (process.env.YOUTUBE_COOKIE) {
+  try {
+    playdl.setToken({ youtube: { cookie: process.env.YOUTUBE_COOKIE } });
+    console.log("YouTube cookie set for play-dl.");
+  } catch (e) { console.error("Error setting play-dl token:", e); }
+}
 
 const app = express();
 app.use(cors());
@@ -78,11 +89,71 @@ const emitRoomState = (roomId) => {
   io.to(roomId).emit("room_state", room);
 };
 
-const playdl = require("play-dl");
+const searchYoutube = async (query) => {
+  const result = await ytSearch(query);
+  return (result.videos || [])
+    .slice(0, 20)
+    .map(v => ({
+      id: v.videoId,
+      title: v.title,
+      thumbnail: v.thumbnail,
+      author: v.author?.name || "Unknown Artist",
+      duration: v.timestamp,
+      seconds: v.seconds || 0
+    }));
+};
+
+const extractAudioUrl = (videoId) => new Promise((resolve, reject) => {
+  const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
+  const args = [
+    "-m", "yt_dlp",
+    "-f", "bestaudio[ext=m4a]/bestaudio",
+    "--dump-single-json",
+    "--no-warnings",
+    "--no-check-certificates",
+    "--add-header", "referer:youtube.com",
+    "--add-header", "user-agent:Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+  ];
+
+  args.push(videoUrl);
+
+  execFile("python", args, { timeout: 30000, maxBuffer: 20 * 1024 * 1024 }, (error, stdout, stderr) => {
+    if (stderr) {
+      console.error("yt-dlp stderr:", stderr);
+    }
+    if (error) {
+      reject(error);
+      return;
+    }
+
+    try {
+      const info = JSON.parse(stdout);
+      const formats = Array.isArray(info.formats) ? info.formats : [];
+      const bestAudio =
+        formats.find(f => f.acodec !== "none" && f.vcodec === "none" && f.ext === "m4a" && f.url) ||
+        formats.find(f => f.acodec !== "none" && f.vcodec === "none" && f.url) ||
+        formats.find(f => f.acodec !== "none" && f.url);
+
+      if (!bestAudio?.url) {
+        reject(new Error("No playable audio format found"));
+        return;
+      }
+
+      resolve({
+        url: bestAudio.url,
+        mimeType: bestAudio.mimeType || bestAudio.ext || "audio/mp4",
+        formatId: bestAudio.format_id || null
+      });
+    } catch (parseError) {
+      reject(parseError);
+    }
+  });
+});
+
 
 // --- API ROUTES ---
 app.get("/", (req, res) => {
-  res.send("<h1>Noni Jam API is Online 🎵</h1><p>The server is running perfectly.</p>");
+  res.send(`<h1>Noni Jam API v3 - TEST ${Date.now()} 🎵</h1><p>If you see this, the server is fresh.</p>`);
 });
 
 // Resolve Direct Native Audio Stream
@@ -91,43 +162,36 @@ app.get("/api/stream-url/:videoId", async (req, res) => {
     const videoId = req.params.videoId;
     if (!videoId) return res.status(400).json({ error: "Missing videoId" });
 
-    const info = await playdl.video_info(videoId);
-    // Prefer pure audio streams (WebM Opus / M4A)
-    const audioFormats = info.format.filter(f => !f.hasVideo && f.hasAudio).sort((a,b) => (b.bitrate || 0) - (a.bitrate || 0));
-    
-    if (audioFormats.length > 0) {
-      res.json({ url: audioFormats[0].url });
+    console.log(`Resolving stream URL for: ${videoId}`);
+    const stream = await extractAudioUrl(videoId);
+    if (stream && stream.url) {
+      console.log(`Success: Found stream URL for ${videoId}`);
+      res.json({ url: stream.url, mimeType: stream.mimeType, formatId: stream.formatId });
     } else {
-      res.status(404).json({ error: "No purely audio streams found." });
+      console.log(`No stream URL found for ${videoId}.`);
+      res.status(404).json({ error: "No stream found for this video." });
     }
   } catch (err) {
     console.error("Stream resolution error:", err);
-    res.status(500).json({ error: "Failed to resolve stream URL" });
+    res.status(500).json({ error: "Failed to resolve stream URL: " + err.message });
   }
 });
 
-// Search YouTube
-app.get("/api/search", async (req, res) => {
+const handleSearchRequest = async (req, res) => {
   try {
-    const query = req.query.q;
+    const query = String(req.query.q || "").trim();
     if (!query) return res.status(400).json({ error: "No query provided" });
-
-    const r = await ytSearch(query);
-    const videos = r.videos.slice(0, 60).map(v => ({
-      id: v.videoId,
-      title: v.title,
-      thumbnail: v.thumbnail,
-      author: v.author.name,
-      duration: v.timestamp,
-      seconds: v.seconds
-    }));
-
+    const videos = await searchYoutube(query);
     res.json(videos);
   } catch (error) {
     console.error("Search error:", error);
     res.status(500).json({ error: "Failed to fetch songs" });
   }
-});
+};
+
+// Search YouTube
+app.get("/api/search", handleSearchRequest);
+app.get("/api/find", handleSearchRequest);
 
 // Authentication Routes
 app.post("/api/auth/login", async (req, res) => {
@@ -177,10 +241,10 @@ app.get("/api/likes", async (req, res) => {
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
     const likes = await dbQuery("SELECT song_id as id, title, thumbnail, author, duration, seconds FROM liked_songs WHERE user_id = $1", [decoded.id]);
-    res.json(likes);
+    res.json(likes || []);
   } catch (err) {
-    console.error("GET /api/likes error:", err);
-    res.status(500).json({ error: "Server error" });
+    console.error("GET /api/likes error:", err.message);
+    res.json([]); // Prevents 500 error for frontend
   }
 });
 
@@ -193,7 +257,8 @@ app.get("/api/preferences", async (req, res) => {
     const prefRow = await dbGet("SELECT preferences_json FROM user_preferences WHERE user_id = $1", [decoded.id]);
     res.json(prefRow ? JSON.parse(prefRow.preferences_json) : []);
   } catch (err) {
-    res.status(500).json({ error: "Server error" });
+    console.error("GET /api/preferences error:", err.message);
+    res.json([]); // Prevents 500
   }
 });
 
@@ -282,8 +347,8 @@ app.get("/api/recommendations", async (req, res) => {
 
     res.json(videos);
   } catch (err) {
-    console.error("Recommendations error:", err);
-    res.status(500).json({ error: "Failed to fetch recommendations: " + err.message });
+    console.error("Recommendations error:", err.message);
+    res.json([]); // Prevents 500 if DB or Search fails
   }
 });
 
@@ -515,7 +580,7 @@ io.on("connection", (socket) => {
   });
 });
 
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3005;
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

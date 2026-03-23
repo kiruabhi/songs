@@ -4,11 +4,11 @@ import { io, Socket } from 'socket.io-client';
 import { Music, Plus, Play, Pause, SkipForward, SkipBack, Copy, Search, Check, Disc, Heart, Repeat, LogOut, Users, Compass, Settings, X } from 'lucide-react';
 import './index.css';
 import './dashboard.css';
-import { registerPlugin } from '@capacitor/core';
+import './jam.css';
+import { registerPlugin, Capacitor } from '@capacitor/core';
+import { BACKEND_URL } from './config';
 const NativeAudio: any = registerPlugin('NativeAudio');
-
-
-const BACKEND_URL = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '');
+const isNative = Capacitor.isNativePlatform();
 
 type User = {
   id: number;
@@ -172,6 +172,7 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
   const [recommendations, setRecommendations] = useState<Song[]>([]);
   const [loadingRecommendations, setLoadingRecommendations] = useState(false);
   const [searching, setSearching] = useState(false);
+  const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [syncTime, setSyncTime] = useState(0);
   const [discoverQuery, setDiscoverQuery] = useState('');
   const [showFullPlayer, setShowFullPlayer] = useState(false);
@@ -181,6 +182,8 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
   const [newPref, setNewPref] = useState('');
 
   const localPauseRef = useRef(false);
+  const stateRef = useRef(state);
+  const syncTimeRef = useRef(syncTime);
   const [isLocallyPaused, setIsLocallyPaused] = useState(false);
 
   const [newUsername, setNewUsername] = useState('');
@@ -189,6 +192,14 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
   const [showParticipants, setShowParticipants] = useState(false);
 
   const isHostOrAdmin = state.hostId === user.id || user.role === 'admin';
+
+  useEffect(() => {
+    stateRef.current = state;
+  }, [state]);
+
+  useEffect(() => {
+    syncTimeRef.current = syncTime;
+  }, [syncTime]);
 
   useEffect(() => {
     // Fetch Liked Songs securely
@@ -275,9 +286,13 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
     socket.on('room_state', (newState: RoomState) => {
       setState(prevState => {
         if (newState.currentSong?.id === prevState.currentSong?.id) {
-           if (Math.abs(syncTime - newState.currentTime) > 2) {
+           if (Math.abs(syncTimeRef.current - newState.currentTime) > 2) {
               setSyncTime(newState.currentTime);
-              try { NativeAudio.seek({ time: newState.currentTime }); } catch(e){}
+              if (isNative) {
+                try { NativeAudio.seek({ time: newState.currentTime }); } catch(e){}
+              } else if (audioRef.current) {
+                audioRef.current.currentTime = newState.currentTime;
+              }
            }
         }
         return newState;
@@ -287,9 +302,13 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
 
     socket.on('sync_player', ({ isPlaying, currentTime }: { isPlaying: boolean, currentTime: number }) => {
       if (!localPauseRef.current) {
-        if (Math.abs(syncTime - currentTime) > 2) {
+        if (Math.abs(syncTimeRef.current - currentTime) > 2) {
           setSyncTime(currentTime);
-          try { NativeAudio.seek({ time: currentTime }); } catch(e){}
+          if (isNative) {
+            try { NativeAudio.seek({ time: currentTime }); } catch(e){}
+          } else if (audioRef.current) {
+            audioRef.current.currentTime = currentTime;
+          }
         }
       }
       setState(s => ({ ...s, isPlaying, currentTime }));
@@ -298,10 +317,11 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
 
     const interval = setInterval(() => {
       // Fake the sync time locally since NativeAudio doesn't transmit events to JS smoothly without overhead
-      if (state.isPlaying && !localPauseRef.current) {
+      const currentState = stateRef.current;
+      if (currentState.isPlaying && !localPauseRef.current) {
          setSyncTime(prev => {
             const next = prev + 1;
-            if (state.currentSong && next >= state.currentSong.seconds) {
+            if (currentState.currentSong && next >= currentState.currentSong.seconds) {
                socket.emit('auto_skip');
                return 0;
             }
@@ -311,8 +331,9 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
     }, 1000);
 
     const hostInterval = setInterval(() => {
-      if (state.isPlaying && !localPauseRef.current) {
-        socket.emit('host_sync', { currentTime: syncTime });
+      const currentState = stateRef.current;
+      if (currentState.isPlaying && !localPauseRef.current) {
+        socket.emit('host_sync', { currentTime: syncTimeRef.current });
       }
     }, 4000);
 
@@ -331,16 +352,42 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const search = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!searchQuery) return;
+  const runSearch = async (q: string) => {
+    if (!q.trim()) {
+      setSearchResults([]);
+      return;
+    }
     setSearching(true);
     try {
-      const res = await fetch(`${BACKEND_URL}/api/search?q=${encodeURIComponent(searchQuery)}`);
+      const res = await fetch(`${BACKEND_URL}/api/search?q=${encodeURIComponent(q)}`);
+      if (!res.ok) {
+        setSearchResults([]);
+        return;
+      }
       const data = await res.json();
       setSearchResults(data);
-    } catch (err) { }
-    setSearching(false);
+    } catch (err) {
+      setSearchResults([]);
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  const search = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    runSearch(searchQuery);
+  };
+
+  const onSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setSearchQuery(val);
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    if (val.trim()) {
+      searchDebounceRef.current = setTimeout(() => runSearch(val), 300);
+    } else {
+      setSearchResults([]);
+    }
   };
 
   const addSong = (song: Song, e?: React.MouseEvent) => {
@@ -392,7 +439,8 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
   const seek = (e: React.ChangeEvent<HTMLInputElement>) => {
     const time = Number(e.target.value);
     setSyncTime(time);
-    try { NativeAudio.seek({ time }); } catch(err){}
+    if (isNative) { try { NativeAudio.seek({ time }); } catch(err){} }
+    else if (audioRef.current) { audioRef.current.currentTime = time; }
     socket.emit('seek', { currentTime: time });
   };
 
@@ -400,32 +448,48 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
 
   
   
-  // --- DIRECT NATIVE AUDIO STREAM FETCHER ---
+  // --- AUDIO STREAM PLAYBACK (Web: HTML audio | Native: NativeAudio plugin) ---
   useEffect(() => {
     if (state.currentSong) {
       fetch(`${BACKEND_URL}/api/stream-url/${state.currentSong.id}`)
         .then(res => res.json())
         .then(data => {
           if (data.url) {
-            try {
-              NativeAudio.playStream({ url: data.url, title: state.currentSong?.title, artist: state.currentSong?.author });
-              if (state.currentTime > 0) NativeAudio.seek({ time: state.currentTime });
-            } catch(e) {}
+            if (isNative) {
+              try {
+                NativeAudio.playStream({ url: data.url, title: state.currentSong?.title, artist: state.currentSong?.author });
+                if (state.currentTime > 0) NativeAudio.seek({ time: state.currentTime });
+              } catch(e) {}
+            } else {
+              // Web browser — drive the HTML <audio> element directly
+              if (audioRef.current) {
+                audioRef.current.src = data.url;
+                audioRef.current.currentTime = state.currentTime > 0 ? state.currentTime : 0;
+                if (state.isPlaying && !localPauseRef.current) {
+                  audioRef.current.play().catch(() => {});
+                }
+              }
+            }
           }
         })
         .catch(() => {});
     } else {
-      try { NativeAudio.pause(); } catch(e){}
+      if (isNative) { try { NativeAudio.pause(); } catch(e){} }
+      else if (audioRef.current) { audioRef.current.pause(); audioRef.current.src = ''; }
     }
   }, [state.currentSong?.id]);
 
-  // Handle Play/Pause synchronization for NativeAudio
+  // Handle Play/Pause synchronization
   useEffect(() => {
-     if (state.isPlaying && !localPauseRef.current) {
-         try { NativeAudio.resume(); } catch(e){}
-     } else {
-         try { NativeAudio.pause(); } catch(e){}
-     }
+    const playing = state.isPlaying && !localPauseRef.current;
+    if (isNative) {
+      if (playing) { try { NativeAudio.resume(); } catch(e){} }
+      else { try { NativeAudio.pause(); } catch(e){} }
+    } else {
+      if (!audioRef.current || !audioRef.current.src) return;
+      if (playing) { audioRef.current.play().catch(() => {}); }
+      else { audioRef.current.pause(); }
+    }
   }, [state.isPlaying, isLocallyPaused]);
 
 
@@ -446,370 +510,377 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
   }, [state.currentSong]);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
+    <div className="jam-root">
       
       <audio 
         ref={audioRef}
         onEnded={() => socket.emit('auto_skip')}
         onError={() => socket.emit('error_skip')}
+        onTimeUpdate={() => {
+          if (!isNative && audioRef.current) {
+            setSyncTime(Math.floor(audioRef.current.currentTime));
+          }
+        }}
         style={{ display: 'none' }}
       />
 
-      {/* HEADER */}
-      <header className="glass" style={{ margin: '20px', padding: '15px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderRadius: '12px', flexWrap: 'wrap', gap: '10px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <Music color="var(--accent)" />
-            <h2 style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>Noni Music</h2>
-            <span style={{ background: 'rgba(255,255,255,0.1)', padding: '4px 10px', borderRadius: '4px', fontSize: '0.9rem', color: 'var(--accent)', fontWeight: 'bold', border: '1px solid rgba(29, 185, 84, 0.3)' }}>#{roomId}</span>
+      {/* TOP NAV */}
+      <nav className="jam-navbar">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+          <div className="jam-brand">
+            <Music color="var(--accent)" size={22} />
+            <span>NoniMusic</span>
           </div>
-
-          <div
-            style={{ display: 'flex', gap: '5px', marginLeft: '10px', overflowX: 'auto', paddingBottom: '2px', cursor: 'pointer' }}
-            onClick={() => setShowParticipants(true)}
-          >
+          <span className="jam-room-badge">#{roomId}</span>
+          <div className="jam-avatars" onClick={() => setShowParticipants(true)}>
             {state.activeUsers?.map((u, i) => (
-              <div key={i} title={u.username + (u.id === state.hostId ? ' (Host)' : ' (Guest)')} style={{ width: '32px', height: '32px', borderRadius: '50%', background: u.id === state.hostId ? 'var(--accent)' : 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: 'bold', color: u.id === state.hostId ? '#000' : '#fff', border: '2px solid var(--bg)', zIndex: 10 - i, marginLeft: i > 0 ? '-10px' : '0' }}>
+              <div
+                key={i}
+                className={`jam-avatar ${u.id === state.hostId ? 'host' : 'guest'}`}
+                title={u.username + (u.id === state.hostId ? ' (Host)' : ' (Guest)')}
+                style={{ zIndex: 20 - i }}
+              >
                 {u.username.substring(0, 1).toUpperCase()}
               </div>
             ))}
           </div>
-
-          <div className="nav-links" style={{ display: 'flex', gap: '10px', marginLeft: '20px' }}>
-            <button className={`btn secondary ${activeTab === 'room' ? 'active-tab' : ''}`} onClick={() => setActiveTab('room')} style={{ padding: '8px 16px', border: activeTab === 'room' ? '1px solid var(--accent)' : '1px solid transparent' }}>
-              <Search size={16} /> <span>Search & Queue</span>
-            </button>
-            <button className={`btn secondary ${activeTab === 'recommend' ? 'active-tab' : ''}`} onClick={() => setActiveTab('recommend')} style={{ padding: '8px 16px', border: activeTab === 'recommend' ? '1px solid var(--accent)' : '1px solid transparent' }}>
-              <Compass size={16} /> <span>Discover</span>
-            </button>
-            <button className={`btn secondary ${activeTab === 'liked' ? 'active-tab' : ''}`} onClick={() => setActiveTab('liked')} style={{ padding: '8px 16px', border: activeTab === 'liked' ? '1px solid var(--accent)' : '1px solid transparent' }}>
-              <Heart size={16} fill={activeTab === 'liked' ? 'var(--accent)' : 'none'} color={activeTab === 'liked' ? 'var(--accent)' : '#fff'} /> <span>Liked Songs</span>
-            </button>
-            {user.role === 'admin' && (
-              <button className={`btn secondary ${activeTab === 'admin' ? 'active-tab' : ''}`} onClick={() => setActiveTab('admin')} style={{ padding: '8px 16px', border: activeTab === 'admin' ? '1px solid var(--accent)' : '1px solid transparent' }}>
-                <Users size={16} /> <span>Admin</span>
-              </button>
-            )}
-          </div>
         </div>
 
-        <div style={{ display: 'flex', gap: '10px' }}>
-          <button className="btn secondary" onClick={copyLink} style={{ padding: '8px 16px', fontSize: '0.9rem' }}>
-            {copied ? <Check size={16} /> : <Copy size={16} />}
+        <div className="jam-nav-tabs">
+          <button className={`jam-tab-btn ${activeTab === 'room' ? 'active' : ''}`} onClick={() => setActiveTab('room')}>
+            <Search size={15} /> Search &amp; Queue
           </button>
-          <button className="btn secondary" onClick={onLogout} style={{ padding: '8px 16px', fontSize: '0.9rem', color: '#ff4444' }}>
-            <LogOut size={16} />
+          <button className={`jam-tab-btn ${activeTab === 'recommend' ? 'active' : ''}`} onClick={() => setActiveTab('recommend')}>
+            <Compass size={15} /> Discover
+          </button>
+          <button className={`jam-tab-btn ${activeTab === 'liked' ? 'active' : ''}`} onClick={() => setActiveTab('liked')}>
+            <Heart size={15} fill={activeTab === 'liked' ? 'var(--accent)' : 'none'} color={activeTab === 'liked' ? 'var(--accent)' : 'currentColor'} /> Liked
+          </button>
+          {user.role === 'admin' && (
+            <button className={`jam-tab-btn ${activeTab === 'admin' ? 'active' : ''}`} onClick={() => setActiveTab('admin')}>
+              <Users size={15} /> Admin
+            </button>
+          )}
+        </div>
+
+        <div className="jam-nav-actions">
+          <button className="jam-icon-btn" onClick={copyLink} title={copied ? 'Copied!' : 'Copy Room ID'}>
+            {copied ? <Check size={18} color="var(--accent)" /> : <Copy size={18} />}
+          </button>
+          <button className="jam-icon-btn danger" onClick={onLogout} title="Leave room">
+            <LogOut size={18} />
           </button>
         </div>
-      </header>
+      </nav>
 
-      {/* MAIN CONTENT */}
-      <div style={{ flex: 1, display: 'flex', gap: '20px', padding: '0 20px', overflow: 'hidden' }}>
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '20px', overflow: 'hidden' }}>
 
-          <div className="glass" style={{ padding: '20px', display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
+      {/* BODY */}
+      <div className="jam-body">
+        <div className="jam-content">
 
-            {activeTab === 'room' && (
-              <>
-                <form onSubmit={search} style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
-                  <input className="input" placeholder="Search songs on Noni Music..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
-                  <button className="btn" type="submit" disabled={searching}><Search size={20} /></button>
-                </form>
+          {/* ── Search & Queue ── */}
+          {activeTab === 'room' && (
+            <>
+              <form onSubmit={search} className="jam-searchbar">
+                <input className="input" placeholder="Search songs on Noni Music..." value={searchQuery} onChange={onSearchChange} />
+                <button className="jam-search-submit" type="submit" disabled={searching}><Search size={18} /></button>
+              </form>
 
-                <div style={{ overflowY: 'auto', flex: 1, paddingRight: '10px' }}>
-                  {searchResults.length > 0 ? (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                      <h3 style={{ fontSize: '0.9rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px' }}>Results (Click to play instantly)</h3>
-                      {searchResults.map((song) => (
-                        <div key={song.id} className="search-row" onClick={() => instantPlay(song)} style={{ display: 'flex', alignItems: 'center', gap: '15px', padding: '10px', borderRadius: '8px', background: 'rgba(255,255,255,0.03)', cursor: 'pointer', transition: 'background 0.2s', border: '1px solid transparent' }}>
-                          <img src={song.thumbnail} alt={song.title} style={{ width: '60px', height: '45px', objectFit: 'cover', borderRadius: '4px' }} />
-                          <div style={{ flex: 1, overflow: 'hidden' }}>
-                            <div style={{ fontSize: '0.95rem', fontWeight: 500, whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>{song.title}</div>
-                            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{song.author} • {song.duration}</div>
-                          </div>
-                          <button className="btn secondary" onClick={(e) => { e.stopPropagation(); toggleLike(song); }} style={{ padding: '8px', border: 'none', background: 'transparent' }}>
-                            <Heart size={20} fill={likedSongs.some(s => s.id === song.id) ? 'var(--accent)' : 'none'} color={likedSongs.some(s => s.id === song.id) ? 'var(--accent)' : '#fff'} />
-                          </button>
-                          <button className="btn" style={{ padding: '8px', borderRadius: '50%' }} onClick={(e) => addSong(song, e)} title="Add to Queue">
-                            <Plus size={16} />
-                          </button>
+              <div className="jam-tab-content">
+                {searchResults.length > 0 ? (
+                  <>
+                    <p className="jam-section-label">Results — click to play instantly</p>
+                    {searchResults.map((song) => (
+                      <div key={song.id} className="jam-track-row" onClick={() => instantPlay(song)}>
+                        <img className="jam-track-thumb" src={song.thumbnail} alt={song.title} />
+                        <div className="jam-track-info">
+                          <div className={`jam-track-title ${state.currentSong?.id === song.id ? 'now-playing' : ''}`}>{song.title}</div>
+                          <div className="jam-track-meta">{song.author} · {song.duration}</div>
                         </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                      <h3 style={{ fontSize: '0.9rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px' }}>Up Next</h3>
-                      {state.queue.length === 0 ? (
-                        <div style={{ color: 'var(--text-muted)', textAlign: 'center', marginTop: '40px', fontSize: '0.9rem' }}>Queue is empty.</div>
-                      ) : (
-                        state.queue.map((song, i) => (
-                          <div key={song.queueId} onClick={() => instantPlay(song)} className="search-row animate-slide-up" style={{ animationDelay: `${i * 0.05}s`, display: 'flex', alignItems: 'center', gap: '15px', padding: '10px', borderRadius: '8px', background: 'rgba(255,255,255,0.02)', cursor: 'pointer' }}>
-                            <img src={song.thumbnail} alt={song.title} style={{ width: '40px', height: '30px', objectFit: 'cover', borderRadius: '4px', opacity: 0.8 }} />
-                            <div style={{ flex: 1, overflow: 'hidden' }}>
-                              <div style={{ fontSize: '0.9rem', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>{song.title}</div>
-                              {song.addedBy && <div style={{ fontSize: '0.7rem', color: 'var(--accent)', marginTop: '2px' }}>Added by {song.addedBy}</div>}
-                            </div>
-                            <button className="btn secondary" onClick={(e) => { e.stopPropagation(); toggleLike(song); }} style={{ padding: '4px', border: 'none', background: 'transparent' }}>
-                              <Heart size={16} fill={likedSongs.some(s => s.id === song.id) ? 'var(--accent)' : 'none'} color={likedSongs.some(s => s.id === song.id) ? 'var(--accent)' : '#fff'} style={{ opacity: 0.5 }} />
-                            </button>
-                            <Play size={16} color="var(--text-muted)" style={{ opacity: 0.5 }} />
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  )}
-                </div>
-              </>
-            )}
-
-            {activeTab === 'recommend' && (
-              <div className="tab-content animate-slide-up">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px', flexWrap: 'wrap', gap: '10px' }}>
-                  <h2 style={{ margin: 0 }}>Discover New Music</h2>
-                  <button className="btn secondary" onClick={() => setShowPrefModal(true)} style={{ fontSize: '0.8rem', padding: '6px 12px', display: 'flex', alignItems: 'center', gap: '5px', borderColor: 'var(--accent)', color: 'var(--accent)' }}>
-                    <Settings size={14} /> Tune Algorithm
-                  </button>
-                </div>
-
-                <p style={{ color: 'var(--text-muted)', marginBottom: '15px', fontSize: '0.9rem' }}>Personalized recommendations based on your liked songs and library trends.</p>
-
-                <form onSubmit={e => { e.preventDefault(); fetchRecommendations(discoverQuery); }} style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
-                  <input className="input" placeholder="Search a mood, artist, or genre..." value={discoverQuery} onChange={e => setDiscoverQuery(e.target.value)} />
-                  <button className="btn" type="submit" disabled={loadingRecommendations}><Search size={20} /></button>
-                </form>
-
-                {loadingRecommendations ? (
-                  <div style={{ display: 'flex', justifyContent: 'center', padding: '40px' }}><div className="loader"></div></div>
-                ) : recommendations.length === 0 ? (
-                  <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
-                    No recommendations found right now.
-                  </div>
-                ) : (
-                  <div className="search-results">
-                    {recommendations.map((song, i) => (
-                      <div key={song.id} className="search-result animate-slide-up" style={{ animationDelay: `${i * 0.05}s` }} onClick={() => instantPlay(song)}>
-                        <img src={song.thumbnail} alt={song.title} />
-                        <div className="info">
-                          <div className="title">{song.title}</div>
-                          <div className="author">{song.author}</div>
-                        </div>
-                        <button className="btn secondary" onClick={(e) => { e.stopPropagation(); toggleLike(song); }} style={{ padding: '8px', border: 'none', background: 'transparent' }}>
-                          <Heart size={20} fill={likedSongs.some(s => s.id === song.id) ? 'var(--accent)' : 'none'} color={likedSongs.some(s => s.id === song.id) ? 'var(--accent)' : '#fff'} />
+                        <button className="jam-track-action" onClick={(e) => { e.stopPropagation(); toggleLike(song); }}>
+                          <Heart size={18} fill={likedSongs.some(s => s.id === song.id) ? 'var(--accent)' : 'none'} color={likedSongs.some(s => s.id === song.id) ? 'var(--accent)' : 'currentColor'} />
                         </button>
-                        <button className="btn icon" onClick={(e) => { e.stopPropagation(); addSong(song, e); }}>
-                          <Plus size={20} />
+                        <button className="jam-add-btn" onClick={(e) => addSong(song, e)} title="Add to Queue">
+                          <Plus size={15} />
                         </button>
                       </div>
                     ))}
-                  </div>
+                  </>
+                ) : (
+                  <>
+                    <p className="jam-section-label">Up Next</p>
+                    {state.queue.length === 0 ? (
+                      <div className="jam-empty-state">
+                        <Disc size={48} />
+                        <h3>Queue is empty</h3>
+                        <p>Search for a song to add it to the queue.</p>
+                      </div>
+                    ) : (
+                      state.queue.map((song, i) => (
+                        <div key={song.queueId} className="jam-track-row animate-slide-up" style={{ animationDelay: `${i * 0.04}s` }} onClick={() => instantPlay(song)}>
+                          <img className="jam-track-thumb sm" src={song.thumbnail} alt={song.title} />
+                          <div className="jam-track-info">
+                            <div className="jam-track-title">{song.title}</div>
+                            {song.addedBy && <div className="jam-track-addedby">Added by {song.addedBy}</div>}
+                          </div>
+                          <button className="jam-track-action" onClick={(e) => { e.stopPropagation(); toggleLike(song); }}>
+                            <Heart size={16} fill={likedSongs.some(s => s.id === song.id) ? 'var(--accent)' : 'none'} color={likedSongs.some(s => s.id === song.id) ? 'var(--accent)' : 'currentColor'} />
+                          </button>
+                          <Play size={14} color="var(--text-muted)" />
+                        </div>
+                      ))
+                    )}
+                  </>
                 )}
               </div>
-            )}
+            </>
+          )}
 
-            {activeTab === 'liked' && (
-              <>
-                <h3 style={{ fontSize: '0.9rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '15px' }}>Your Liked Songs</h3>
-                <div style={{ overflowY: 'auto', flex: 1, paddingRight: '10px' }}>
-                  {likedSongs.length === 0 ? (
-                    <div style={{ color: 'var(--text-muted)', textAlign: 'center', marginTop: '40px', fontSize: '0.9rem' }}>You haven't liked any songs yet.</div>
-                  ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                      {likedSongs.map((song) => (
-                        <div key={song.id} className="search-row" onClick={() => instantPlay(song)} style={{ display: 'flex', alignItems: 'center', gap: '15px', padding: '10px', borderRadius: '8px', background: 'rgba(255,255,255,0.03)', cursor: 'pointer', transition: 'background 0.2s', border: '1px solid transparent' }}>
-                          <img src={song.thumbnail} alt={song.title} style={{ width: '60px', height: '45px', objectFit: 'cover', borderRadius: '4px' }} />
-                          <div style={{ flex: 1, overflow: 'hidden' }}>
-                            <div style={{ fontSize: '0.95rem', fontWeight: 500, whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>{song.title}</div>
-                            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{song.author} • {song.duration}</div>
-                          </div>
-                          <Heart size={20} fill="var(--accent)" color="var(--accent)" onClick={(e) => { e.stopPropagation(); toggleLike(song) }} />
-                          <button className="btn" style={{ padding: '8px', borderRadius: '50%', marginLeft: '10px' }} onClick={(e) => addSong(song, e)} title="Add to Queue">
-                            <Plus size={16} />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+          {/* ── Discover ── */}
+          {activeTab === 'recommend' && (
+            <div className="jam-tab-content animate-slide-up">
+              <div className="jam-discover-header">
+                <h2>Discover New Music</h2>
+                <button className="jam-algo-btn" onClick={() => setShowPrefModal(true)}>
+                  <Settings size={14} /> Tune Algorithm
+                </button>
+              </div>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginBottom: '18px', lineHeight: 1.6 }}>Personalised recommendations based on your liked songs and library trends.</p>
+              <form onSubmit={e => { e.preventDefault(); fetchRecommendations(discoverQuery); }} className="jam-searchbar" style={{ marginBottom: '20px' }}>
+                <input className="input" placeholder="Search a mood, artist, or genre..." value={discoverQuery} onChange={e => setDiscoverQuery(e.target.value)} />
+                <button className="jam-search-submit" type="submit" disabled={loadingRecommendations}><Search size={18} /></button>
+              </form>
+
+              {loadingRecommendations ? (
+                <div className="jam-loader"><div className="loader" /></div>
+              ) : recommendations.length === 0 ? (
+                <div className="jam-empty-state">
+                  <Compass size={48} />
+                  <h3>Nothing found yet</h3>
+                  <p>Try searching a mood or genre above.</p>
                 </div>
-              </>
-            )}
+              ) : (
+                <div className="jam-discover-grid">
+                  {recommendations.map((song, i) => (
+                    <div key={song.id} className="jam-discover-card animate-slide-up" style={{ animationDelay: `${i * 0.03}s` }} onClick={() => instantPlay(song)}>
+                      <img src={song.thumbnail} alt={song.title} />
+                      <div className="jam-discover-card-info">
+                        <div className="jam-discover-card-title">{song.title}</div>
+                        <div className="jam-discover-card-author">{song.author}</div>
+                      </div>
+                      <div className="jam-discover-card-actions">
+                        <button className="play-btn" onClick={(e) => { e.stopPropagation(); instantPlay(song); }}><Play size={15} fill="#000" /></button>
+                        <button className="add-btn-card" onClick={(e) => { e.stopPropagation(); addSong(song, e); }}><Plus size={15} /></button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
-            {activeTab === 'admin' && user.role === 'admin' && (
-              <div style={{ maxWidth: '400px', margin: '0 auto', width: '100%' }}>
-                <h3 style={{ fontSize: '1.1rem', marginBottom: '20px' }}>Admin Dashboard: Invite Friends</h3>
-                <form onSubmit={createAdminUser} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+          {/* ── Liked Songs ── */}
+          {activeTab === 'liked' && (
+            <div className="jam-tab-content animate-slide-up">
+              <p className="jam-section-label">Your Liked Songs</p>
+              {likedSongs.length === 0 ? (
+                <div className="jam-empty-state">
+                  <Heart size={48} />
+                  <h3>No liked songs yet</h3>
+                  <p>Heart a song while it's playing to save it here.</p>
+                </div>
+              ) : (
+                likedSongs.map((song) => (
+                  <div key={song.id} className="jam-track-row" onClick={() => instantPlay(song)}>
+                    <img className="jam-track-thumb" src={song.thumbnail} alt={song.title} />
+                    <div className="jam-track-info">
+                      <div className="jam-track-title">{song.title}</div>
+                      <div className="jam-track-meta">{song.author} · {song.duration}</div>
+                    </div>
+                    <button className="jam-track-action liked" onClick={(e) => { e.stopPropagation(); toggleLike(song); }}>
+                      <Heart size={18} fill="var(--accent)" color="var(--accent)" />
+                    </button>
+                    <button className="jam-add-btn" onClick={(e) => addSong(song, e)} title="Add to Queue">
+                      <Plus size={15} />
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
+
+          {/* ── Admin ── */}
+          {activeTab === 'admin' && user.role === 'admin' && (
+            <div className="jam-tab-content animate-slide-up">
+              <div className="jam-admin-card">
+                <h3><Users size={20} color="var(--accent)" /> Invite Friends</h3>
+                <form onSubmit={createAdminUser} className="jam-admin-form">
                   <input className="input" placeholder="New Friend Username" required value={newUsername} onChange={e => setNewUsername(e.target.value)} />
                   <input className="input" type="password" placeholder="New Password" required value={newPassword} onChange={e => setNewPassword(e.target.value)} />
                   <button type="submit" className="btn">Create Account</button>
-                  {adminMsg && <div style={{ color: 'var(--accent)', textAlign: 'center', fontWeight: 'bold' }}>{adminMsg}</div>}
+                  {adminMsg && <div className={`jam-admin-msg ${adminMsg.includes('success') ? 'ok' : 'err'}`}>{adminMsg}</div>}
                 </form>
               </div>
-            )}
+            </div>
+          )}
 
-          </div>
         </div>
       </div>
 
-      {/* PLAYER PANEL - Compact controls-only mini bar */}
-      <div className="glass player-panel" style={{ margin: '20px', padding: '12px 20px', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '15px', background: 'rgba(20, 20, 25, 0.9)', flexWrap: 'nowrap' }}>
+      {/* BOTTOM PLAYER BAR */}
+      <footer className="jam-player-bar">
         {state.currentSong ? (
           <>
-            {/* Thumbnail — tap to open full-screen player */}
-            <img
-              src={state.currentSong.thumbnail}
-              alt="cover"
-              style={{ width: '52px', height: '52px', borderRadius: '8px', objectFit: 'cover', flexShrink: 0, cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.5)' }}
-              onClick={() => setShowFullPlayer(true)}
-              title="Expand player"
-            />
+            {/* Left: thumbnail + song info + like */}
+            <div className="jam-player-left">
+              <img
+                className="jam-player-thumb"
+                src={state.currentSong.thumbnail}
+                alt="cover"
+                onClick={() => setShowFullPlayer(true)}
+                title="Open full player"
+              />
+              <div className="jam-player-song-info">
+                <div className="jam-player-title">{state.currentSong.title}</div>
+                <div className="jam-player-author">{state.currentSong.author}</div>
+              </div>
+              <button className="jam-player-like" onClick={() => toggleLike(state.currentSong)}>
+                <Heart size={18} fill={isCurrentLiked ? 'var(--accent)' : 'none'} color={isCurrentLiked ? 'var(--accent)' : 'var(--text-muted)'} />
+              </button>
+            </div>
 
-            {/* Controls — centered, flex:1 */}
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', minWidth: 0 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <button onClick={previous} disabled={state.history.length === 0} style={{ background: 'transparent', border: 'none', color: state.history.length === 0 ? 'rgba(255,255,255,0.3)' : '#fff', cursor: 'pointer', padding: '6px', display: 'flex', alignItems: 'center' }}>
-                  <SkipBack size={22} />
+            {/* Center: controls + seek */}
+            <div className="jam-player-center">
+              <div className="jam-controls">
+                <button className="jam-ctrl-btn" onClick={previous} disabled={state.history.length === 0}>
+                  <SkipBack size={20} />
                 </button>
-                <button onClick={togglePlay} style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'var(--accent)', border: 'none', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 20px rgba(29,185,84,0.4)', flexShrink: 0 }}>
-                  {(isHostOrAdmin ? state.isPlaying : (!isLocallyPaused && state.isPlaying)) ? <Pause size={20} fill="#fff" /> : <Play size={20} fill="#fff" style={{ marginLeft: '2px' }} />}
+                <button className="jam-play-btn" onClick={togglePlay}>
+                  {(isHostOrAdmin ? state.isPlaying : (!isLocallyPaused && state.isPlaying))
+                    ? <Pause size={20} fill="#000" />
+                    : <Play size={20} fill="#000" style={{ marginLeft: '2px' }} />}
                 </button>
-                <button onClick={skip} style={{ background: 'transparent', border: 'none', color: '#fff', cursor: 'pointer', padding: '6px', display: 'flex', alignItems: 'center' }}>
-                  <SkipForward size={22} />
+                <button className="jam-ctrl-btn" onClick={skip}>
+                  <SkipForward size={20} />
                 </button>
               </div>
-
-              {/* Seek bar */}
-              <div style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                <span style={{ flexShrink: 0 }}>{formatTime(syncTime)}</span>
-                <input type="range" min="0" max={state.currentSong.seconds || 0} value={syncTime} onChange={seek} className="seek-slider" style={{ flex: 1, minWidth: 0 }} />
-                <span style={{ flexShrink: 0 }}>{state.currentSong.duration}</span>
+              <div className="jam-progress-row">
+                <span>{formatTime(syncTime)}</span>
+                <input type="range" min="0" max={state.currentSong.seconds || 0} value={syncTime} onChange={seek} className="seek-slider" style={{ flex: 1 }} />
+                <span>{state.currentSong.duration}</span>
               </div>
             </div>
 
-            {/* Right side extras — hidden on mobile via CSS */}
-            <div className="player-extras" style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
-              <button onClick={toggleLoop} disabled={!isHostOrAdmin} style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '6px', opacity: state.isLooping ? 1 : 0.4, color: state.isLooping ? 'var(--accent)' : '#fff', display: 'flex' }}>
+            {/* Right: loop + role badge */}
+            <div className="jam-player-right">
+              <button
+                className={`jam-ctrl-btn ${state.isLooping ? 'loop-active' : ''}`}
+                onClick={toggleLoop}
+                disabled={!isHostOrAdmin}
+                title="Toggle loop"
+              >
                 <Repeat size={18} />
               </button>
-              <Heart size={18} style={{ cursor: 'pointer' }} fill={isCurrentLiked ? "var(--accent)" : "none"} color={isCurrentLiked ? "var(--accent)" : "var(--text-muted)"} onClick={() => toggleLike(state.currentSong)} />
-              {isHostOrAdmin ? <span style={{ fontSize: '0.65rem', color: 'var(--accent)', fontWeight: 'bold', letterSpacing: '1px' }}>HOST</span> : <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>GUEST</span>}
+              <span className={`jam-role-badge ${isHostOrAdmin ? 'host' : 'guest'}`}>
+                {isHostOrAdmin ? 'HOST' : 'GUEST'}
+              </span>
             </div>
           </>
         ) : (
-          <div style={{ width: '100%', textAlign: 'center', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', padding: '10px' }}>
-            <Disc size={22} style={{ animation: 'spin 4s linear infinite' }} />
+          <div className="jam-player-empty">
+            <Disc size={22} style={{ animation: 'spin 4s linear infinite', opacity: 0.4 }} />
             No song playing right now
           </div>
         )}
-      </div>
+      </footer>
 
-      {/* MOBILE BOTTOM NAV - always visible on small screens */}
-      <div className="mobile-bottom-nav" style={{ display: 'none' }}>
+      {/* MOBILE BOTTOM NAV */}
+      <div className="mobile-bottom-nav">
         <button className={activeTab === 'room' ? 'active' : ''} onClick={() => setActiveTab('room')}>
-          <Search size={22} />
-          <span>Search</span>
+          <Search size={22} /><span>Search</span>
         </button>
         <button className={activeTab === 'recommend' ? 'active' : ''} onClick={() => setActiveTab('recommend')}>
-          <Compass size={22} />
-          <span>Discover</span>
+          <Compass size={22} /><span>Discover</span>
         </button>
         <button className={activeTab === 'liked' ? 'active' : ''} onClick={() => setActiveTab('liked')}>
-          <Heart size={22} fill={activeTab === 'liked' ? 'var(--accent)' : 'none'} color={activeTab === 'liked' ? 'var(--accent)' : '#fff'} />
-          <span>Liked</span>
+          <Heart size={22} fill={activeTab === 'liked' ? 'var(--accent)' : 'none'} color={activeTab === 'liked' ? 'var(--accent)' : '#fff'} /><span>Liked</span>
         </button>
         {user.role === 'admin' && (
           <button className={activeTab === 'admin' ? 'active' : ''} onClick={() => setActiveTab('admin')}>
-            <Users size={22} />
-            <span>Admin</span>
+            <Users size={22} /><span>Admin</span>
           </button>
         )}
       </div>
 
       {/* FULL SCREEN NOW PLAYING */}
       {showFullPlayer && state.currentSong && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'linear-gradient(180deg, #1a0533 0%, #0d1b2a 100%)', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '30px 20px 40px', overflowY: 'auto' }} className="animate-slide-up">
-          {/* Header */}
-          <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
-            <button style={{ background: 'transparent', border: 'none', color: '#fff', cursor: 'pointer', padding: '8px' }} onClick={() => setShowFullPlayer(false)}>
-              <X size={28} />
-            </button>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '2px' }}>Now Playing</div>
+        <div className="jam-fullplayer animate-slide-up">
+          <div className="jam-fullplayer-header">
+            <button className="jam-fullplayer-ctrl" onClick={() => setShowFullPlayer(false)}><X size={26} /></button>
+            <span className="jam-fullplayer-label">Now Playing</span>
+            <div style={{ width: 42 }} />
+          </div>
+
+          <div className="jam-fullplayer-art">
+            <div className="jam-fullplayer-art-frame">
+              <img src={state.currentSong.thumbnail} alt={state.currentSong.title} className={state.isPlaying ? 'playing' : ''} />
             </div>
-            <div style={{ width: '44px' }} />{/* spacer */}
+            {state.isPlaying && <div className="jam-fullplayer-ring" />}
           </div>
 
-          {/* Album Art */}
-          <div style={{ position: 'relative', marginBottom: '40px' }}>
-            <div style={{ width: '280px', height: '280px', borderRadius: '20px', overflow: 'hidden', boxShadow: '0 30px 80px rgba(0,0,0,0.7)', border: '1px solid rgba(255,255,255,0.1)' }}>
-              <img src={state.currentSong.thumbnail} alt={state.currentSong.title} style={{ width: '100%', height: '100%', objectFit: 'cover', transform: state.isPlaying ? 'scale(1.05)' : 'scale(1)', transition: 'transform 0.5s ease' }} />
-            </div>
-            {state.isPlaying && (
-              <div style={{ position: 'absolute', inset: '-3px', borderRadius: '23px', border: '2px solid var(--accent)', opacity: 0.5, animation: 'pulse 2s ease-in-out infinite' }} />
-            )}
+          <div className="jam-fullplayer-info">
+            <h2>{state.currentSong.title}</h2>
+            <p>{state.currentSong.author}</p>
+            {state.currentSong.addedBy && <p className="jam-fullplayer-addedby">♫ Added by {state.currentSong.addedBy}</p>}
           </div>
 
-          {/* Song Info */}
-          <div style={{ textAlign: 'center', marginBottom: '30px', width: '100%', maxWidth: '400px' }}>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '8px', lineHeight: 1.2 }}>{state.currentSong.title}</h2>
-            <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem' }}>{state.currentSong.author}</p>
-            {state.currentSong.addedBy && (
-              <p style={{ color: 'var(--accent)', fontSize: '0.8rem', marginTop: '5px', opacity: 0.8 }}>♫ Added by {state.currentSong.addedBy}</p>
-            )}
-          </div>
-
-          {/* Like + Controls Row */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '25px' }}>
-            <button style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '8px' }} onClick={() => toggleLike(state.currentSong!)}>
-              <Heart size={26} fill={likedSongs.some(s => s.id === state.currentSong?.id) ? 'var(--accent)' : 'none'} color={likedSongs.some(s => s.id === state.currentSong?.id) ? 'var(--accent)' : '#fff'} />
+          {/* Like */}
+          <div style={{ marginBottom: '16px' }}>
+            <button className="jam-player-like" onClick={() => toggleLike(state.currentSong!)}>
+              <Heart size={26} fill={isCurrentLiked ? 'var(--accent)' : 'none'} color={isCurrentLiked ? 'var(--accent)' : '#fff'} />
             </button>
           </div>
 
-          {/* Seek Bar */}
-          <div style={{ width: '100%', maxWidth: '400px', marginBottom: '20px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '8px' }}>
+          <div className="jam-fullplayer-seek">
+            <div className="jam-fullplayer-seek-times">
               <span>{formatTime(syncTime)}</span>
               <span>{state.currentSong.duration}</span>
             </div>
             <input type="range" min="0" max={state.currentSong.seconds || 0} value={syncTime} onChange={seek} className="seek-slider" style={{ width: '100%' }} />
           </div>
 
-          {/* Main Controls */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '30px' }}>
-            <button style={{ background: 'transparent', border: 'none', color: '#fff', cursor: 'pointer', padding: '8px' }} onClick={() => socket.emit('prev_song', { roomId })}>
-              <SkipBack size={32} />
+          <div className="jam-fullplayer-controls">
+            <button className="jam-fullplayer-ctrl" onClick={previous}><SkipBack size={30} /></button>
+            <button className="jam-fullplayer-play" onClick={togglePlay}>
+              {(isHostOrAdmin ? state.isPlaying : (!isLocallyPaused && state.isPlaying))
+                ? <Pause size={32} fill="#000" />
+                : <Play size={32} fill="#000" style={{ marginLeft: '4px' }} />}
             </button>
-            <button style={{ width: '70px', height: '70px', borderRadius: '50%', background: 'var(--accent)', border: 'none', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 30px rgba(29,185,84,0.5)', transition: 'transform 0.1s' }} onClick={togglePlay}>
-              {(isHostOrAdmin ? state.isPlaying : (!isLocallyPaused && state.isPlaying)) ? <Pause size={32} fill="#fff" /> : <Play size={32} fill="#fff" style={{ marginLeft: '4px' }} />}
-            </button>
-            <button style={{ background: 'transparent', border: 'none', color: '#fff', cursor: 'pointer', padding: '8px' }} onClick={skip}>
-              <SkipForward size={32} />
-            </button>
+            <button className="jam-fullplayer-ctrl" onClick={skip}><SkipForward size={30} /></button>
           </div>
         </div>
       )}
 
+      {/* PARTICIPANTS MODAL */}
       {showParticipants && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }} onClick={() => setShowParticipants(false)}>
-          <div className="glass animate-slide-up" style={{ padding: '30px', width: '90%', maxWidth: '400px', borderRadius: '16px' }} onClick={e => e.stopPropagation()}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <h3 style={{ margin: 0, fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '10px' }}><Users size={20} color="var(--accent)" /> Room Participants</h3>
-              <button className="btn secondary" onClick={() => setShowParticipants(false)} style={{ padding: '4px 8px', fontSize: '0.8rem' }}>Close</button>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '300px', overflowY: 'auto', paddingRight: '10px' }}>
+        <div className="jam-overlay" onClick={() => setShowParticipants(false)}>
+          <div className="jam-modal animate-slide-up" onClick={e => e.stopPropagation()}>
+            <h3><Users size={18} color="var(--accent)" /> Room Participants</h3>
+            <button className="jam-modal-close" onClick={() => setShowParticipants(false)}><X size={18} /></button>
+            <div className="jam-participants-list" style={{ marginTop: '16px' }}>
               {state.activeUsers?.map(u => (
-                <div key={u.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: u.id === state.hostId ? 'var(--accent)' : 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', color: u.id === state.hostId ? '#000' : '#fff' }}>
-                      {u.username.substring(0, 1).toUpperCase()}
-                    </div>
-                    <div>
-                      <div style={{ fontWeight: 500 }}>{u.username} {u.id === user.id ? '(You)' : ''}</div>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>ID: {u.id}</div>
-                    </div>
+                <div key={u.id} className="jam-participant-row">
+                  <div className={`jam-participant-avatar ${u.id === state.hostId ? 'host' : 'guest'}`}
+                    style={{ background: u.id === state.hostId ? 'var(--accent)' : 'rgba(255,255,255,0.12)', color: u.id === state.hostId ? '#000' : '#fff' }}>
+                    {u.username.substring(0, 1).toUpperCase()}
                   </div>
-                  <div style={{ fontSize: '0.8rem', padding: '4px 10px', borderRadius: '12px', background: u.id === state.hostId ? 'rgba(29, 185, 84, 0.2)' : 'rgba(255,255,255,0.1)', color: u.id === state.hostId ? 'var(--accent)' : 'var(--text-muted)' }}>
+                  <div className="jam-participant-info">
+                    <div className="jam-participant-name">{u.username} {u.id === user.id ? '(You)' : ''}</div>
+                    <div className="jam-participant-sub">ID {u.id}</div>
+                  </div>
+                  <span className={`jam-role-badge ${u.id === state.hostId ? 'host' : 'guest'}`}>
                     {u.id === state.hostId ? 'Host' : 'Guest'}
-                  </div>
+                  </span>
                 </div>
               ))}
             </div>
@@ -819,32 +890,27 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
 
       {/* PREFERENCES MODAL */}
       {showPrefModal && (
-        <div className="overlay" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div className="glass modal-content animate-slide-up" style={{ width: '400px', maxWidth: '95%', padding: '25px', borderRadius: '16px', position: 'relative' }}>
-            <button className="btn secondary icon" onClick={() => setShowPrefModal(false)} style={{ position: 'absolute', top: '15px', right: '15px', padding: '5px', border: 'none' }}>
-              <X size={20} />
-            </button>
-            <h3 style={{ marginTop: 0, marginBottom: '20px' }}><Settings size={18} style={{ marginRight: '8px', verticalAlign: 'middle' }} /> Algorithm Tuning</h3>
-            <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '15px' }}>Add specific artists, genres, or moods to tightly focus your Discover feed.</p>
-
-            <form onSubmit={addPref} style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
-              <input className="input" placeholder="e.g. Synthwave" value={newPref} onChange={e => setNewPref(e.target.value)} style={{ flex: 1 }} />
+        <div className="jam-overlay" onClick={() => setShowPrefModal(false)}>
+          <div className="jam-modal animate-slide-up" onClick={e => e.stopPropagation()}>
+            <h3><Settings size={16} /> Algorithm Tuning</h3>
+            <button className="jam-modal-close" onClick={() => setShowPrefModal(false)}><X size={18} /></button>
+            <p>Add artists, genres, or moods to tightly focus your Discover feed.</p>
+            <form onSubmit={addPref} className="jam-pref-form">
+              <input className="input" style={{ flex: 1 }} placeholder="e.g. Synthwave" value={newPref} onChange={e => setNewPref(e.target.value)} />
               <button type="submit" className="btn secondary">Add</button>
             </form>
-
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', maxHeight: '200px', overflowY: 'auto' }}>
-              {preferences.length === 0 ? (
-                <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>No overriding tags defined.</span>
-              ) : preferences.map(t => (
-                <div key={t} style={{ display: 'flex', alignItems: 'center', gap: '5px', background: 'rgba(255,255,255,0.1)', padding: '5px 10px', borderRadius: '20px', fontSize: '0.85rem' }}>
-                  {t}
-                  <X size={14} style={{ cursor: 'pointer', opacity: 0.7 }} onClick={() => removePref(t)} />
-                </div>
-              ))}
+            <div className="jam-pref-tags">
+              {preferences.length === 0
+                ? <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>No tags yet.</span>
+                : preferences.map(t => (
+                  <div key={t} className="jam-pref-tag">
+                    {t}
+                    <button onClick={() => removePref(t)}><X size={13} /></button>
+                  </div>
+                ))}
             </div>
-
             <div style={{ marginTop: '20px', textAlign: 'right' }}>
-              <button className="btn" onClick={() => { setShowPrefModal(false); fetchRecommendations(); }}>Compile Matrix</button>
+              <button className="btn" onClick={() => { setShowPrefModal(false); fetchRecommendations(); }}>Apply</button>
             </div>
           </div>
         </div>

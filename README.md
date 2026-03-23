@@ -24,4 +24,12 @@ A modern, high-quality music streaming application built with React, Express, an
 5. Start the client with `npm run dev` in the `client` folder.
 
 ### Deployment
-This project is ready for one-click deployment on Render. Use the `render.yaml` file in the root to set up your blueprint.
+This project is ready for deployment on Render and Vercel.
+
+#### Render
+Use the `render.yaml` file in the root. The backend build installs `yt-dlp`, which is required for direct audio extraction.
+
+#### Vercel
+Deploy the `client` folder as a Vite app and set:
+
+`VITE_API_URL=https://your-render-backend.onrender.com`

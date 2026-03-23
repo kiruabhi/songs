@@ -3,7 +3,7 @@ services:
   - type: web
     name: noni-jam-server
     env: node
-    buildCommand: npm install
+    buildCommand: npm install && python -m pip install yt-dlp
     startCommand: npm start
     rootDir: server
     envVars:
