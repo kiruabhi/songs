@@ -9,7 +9,9 @@ import android.content.pm.ServiceInfo;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.PowerManager;
+import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
+import android.support.v4.media.session.PlaybackStateCompat;
 
 import androidx.core.app.NotificationCompat;
 
@@ -29,16 +31,35 @@ public class BackgroundAudioService extends Service {
             wakeLock.acquire();
         }
 
-        // Initialize Native Media Session to tell Android we are a true Media Player
+        // Initialize Native Media Session
         mediaSession = new MediaSessionCompat(this, "NoniMusicSession");
+
+        // Set Playback State to PLAYING! This prevents Android OS from suspending the app!
+        PlaybackStateCompat.Builder stateBuilder = new PlaybackStateCompat.Builder()
+                .setActions(PlaybackStateCompat.ACTION_PLAY | PlaybackStateCompat.ACTION_PAUSE | PlaybackStateCompat.ACTION_SKIP_TO_NEXT | PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS)
+                .setState(PlaybackStateCompat.STATE_PLAYING, PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, 1.0f);
+        mediaSession.setPlaybackState(stateBuilder.build());
+
+        // Set Metadata giving it a real Music Player look
+        MediaMetadataCompat.Builder metadataBuilder = new MediaMetadataCompat.Builder()
+                .putString(MediaMetadataCompat.METADATA_KEY_TITLE, "Noni Music Jam")
+                .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, "Live Background Audio")
+                .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, -1);
+        mediaSession.setMetadata(metadataBuilder.build());
+
         mediaSession.setActive(true);
 
+        // Build the robust Spotify-style Notification
         Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle("Noni Music")
-                .setContentText("Playing seamlessly in background")
+                .setContentText("Playing safely in background")
                 .setSmallIcon(android.R.drawable.ic_media_play)
-                // THE CRITICAL FIX: Treat this specifically as a Music Player UI
+                // Add dummy actions to force it into a rich media style layout
+                .addAction(new NotificationCompat.Action(android.R.drawable.ic_media_previous, "Prev", null))
+                .addAction(new NotificationCompat.Action(android.R.drawable.ic_media_pause, "Pause", null))
+                .addAction(new NotificationCompat.Action(android.R.drawable.ic_media_next, "Next", null))
                 .setStyle(new androidx.media.app.NotificationCompat.MediaStyle()
+                        .setShowActionsInCompactView(0, 1, 2)
                         .setMediaSession(mediaSession.getSessionToken()))
                 .setOngoing(true)
                 .build();
