@@ -1,4 +1,5 @@
 const rawApiUrl = import.meta.env.VITE_API_URL?.trim();
+const DEPLOY_BACKEND_FALLBACK = 'https://noni-jam-server.onrender.com';
 
 const explicitApiUrl = rawApiUrl
   ? (/^https?:\/\//i.test(rawApiUrl) ? rawApiUrl : `https://${rawApiUrl}`).replace(/\/+$/, '')
@@ -16,7 +17,16 @@ function inferBackendUrl() {
     return `${protocol}//${hostname}:3001`;
   }
 
-  return origin.replace(/\/+$/, '');
+  if (
+    hostname === 'localhost' ||
+    hostname === '127.0.0.1' ||
+    hostname.endsWith('.local')
+  ) {
+    return origin.replace(/\/+$/, '');
+  }
+
+  // Production deploys use a separate backend service on Render.
+  return DEPLOY_BACKEND_FALLBACK;
 }
 
 export const BACKEND_URL = explicitApiUrl || inferBackendUrl();

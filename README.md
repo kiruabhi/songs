@@ -33,3 +33,7 @@ Use the `render.yaml` file in the root. The backend build installs `yt-dlp`, whi
 Deploy the `client` folder as a Vite app and set:
 
 `VITE_API_URL=https://your-render-backend.onrender.com`
+
+If `VITE_API_URL` is not set, the app now falls back to:
+
+`https://noni-jam-server.onrender.com`
