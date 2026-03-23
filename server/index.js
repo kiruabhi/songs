@@ -1,11 +1,11 @@
 require("dotenv").config();
 const express = require("express");
-const { execFile } = require("child_process");
 const http = require("http");
 const https = require("https");
 const { Server } = require("socket.io");
 const cors = require("cors");
 const ytSearch = require("yt-search");
+const ytDlpExec = require("yt-dlp-exec");
 const jwt = require("jsonwebtoken");
 const fs = require('fs');
 const { dbGet, dbRun, dbQuery } = require("./db");
@@ -103,56 +103,20 @@ const searchYoutube = async (query) => {
     }));
 };
 
-const YT_DLP_RUNNERS = [
-  { command: process.env.YT_DLP_BIN || "yt-dlp", baseArgs: [] },
-  { command: "python3", baseArgs: ["-m", "yt_dlp"] },
-  { command: "python", baseArgs: ["-m", "yt_dlp"] }
-];
-
-const execYtDlp = (command, args) => new Promise((resolve, reject) => {
-  execFile(command, args, { timeout: 30000, maxBuffer: 20 * 1024 * 1024 }, (error, stdout, stderr) => {
-    if (stderr) {
-      console.error(`yt-dlp stderr (${command}):`, stderr);
-    }
-    if (error) {
-      error.stderr = stderr;
-      reject(error);
-      return;
-    }
-    resolve(stdout);
-  });
-});
-
-const runYtDlp = async (sharedArgs) => {
-  const failures = [];
-
-  for (const runner of YT_DLP_RUNNERS) {
-    try {
-      return await execYtDlp(runner.command, [...runner.baseArgs, ...sharedArgs]);
-    } catch (error) {
-      failures.push(`${runner.command}: ${error.message}`);
-    }
-  }
-
-  throw new Error(`yt-dlp is unavailable. Tried: ${failures.join(" | ")}`);
-};
-
 const extractAudioUrl = (videoId) => new Promise(async (resolve, reject) => {
   const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
-  const args = [
-    "-f", "bestaudio[ext=m4a]/bestaudio",
-    "--dump-single-json",
-    "--no-warnings",
-    "--no-check-certificates",
-    "--add-header", "referer:youtube.com",
-    "--add-header", "user-agent:Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-  ];
-
-  args.push(videoUrl);
 
   try {
-    const stdout = await runYtDlp(args);
-    const info = JSON.parse(stdout);
+    const info = await ytDlpExec(videoUrl, {
+      format: "bestaudio[ext=m4a]/bestaudio",
+      dumpSingleJson: true,
+      noWarnings: true,
+      noCheckCertificates: true,
+      addHeader: [
+        "referer:youtube.com",
+        "user-agent:Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+      ]
+    });
     const requestedDownloads = Array.isArray(info.requested_downloads) ? info.requested_downloads : [];
     const formats = Array.isArray(info.formats) ? info.formats : [];
     const bestAudio =
@@ -173,7 +137,7 @@ const extractAudioUrl = (videoId) => new Promise(async (resolve, reject) => {
       headers: bestAudio.http_headers || info.http_headers || {}
     });
   } catch (error) {
-    reject(error);
+    reject(new Error(error?.stderr || error?.message || "yt-dlp execution failed"));
   }
 });
 
