@@ -6,10 +6,8 @@ import { Music, Plus, Play, Pause, SkipForward, SkipBack, Copy, Search, Check, D
 import './index.css';
 import './dashboard.css';
 import './jam.css';
-import { registerPlugin, Capacitor } from '@capacitor/core';
 import { BACKEND_URL } from './config';
-const NativeAudio: any = registerPlugin('NativeAudio');
-const isNative = Capacitor.isNativePlatform();
+import { NativeAudio, isNative } from './nativeAudio';
 
 type User = {
   id: number;
@@ -569,18 +567,23 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
       />
 
       {!isNative && state.currentSong && isYoutubeFallback && (
-        <div style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', opacity: 0, pointerEvents: 'none' }}>
+        <div style={{ position: 'fixed', right: '18px', bottom: '104px', width: '320px', zIndex: 70, background: 'rgba(12,12,12,0.96)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '14px', padding: '10px', boxShadow: '0 18px 45px rgba(0,0,0,0.35)' }}>
+          <div style={{ fontSize: '0.75rem', color: '#c7c7c7', marginBottom: '8px' }}>
+            Web playback uses the official YouTube player. If autoplay is blocked, press play once inside the player.
+          </div>
           <YouTube
             videoId={state.currentSong.id}
             opts={{
-              width: '1',
-              height: '1',
+              width: '320',
+              height: '200',
               playerVars: {
                 autoplay: state.isPlaying && !localPauseRef.current ? 1 : 0,
-                controls: 0,
-                disablekb: 1,
-                fs: 0,
+                controls: 1,
+                disablekb: 0,
+                fs: 1,
+                playsinline: 1,
                 rel: 0,
+                origin: window.location.origin,
                 start: state.currentTime > 0 ? state.currentTime : 0
               }
             }}
