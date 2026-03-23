@@ -1,11 +1,13 @@
 require("dotenv").config();
 const express = require("express");
+const { execFile } = require("child_process");
 const http = require("http");
 const https = require("https");
 const { Server } = require("socket.io");
 const cors = require("cors");
 const ytSearch = require("yt-search");
 const ytDlpExec = require("yt-dlp-exec");
+const ffmpegPath = require("ffmpeg-static");
 const jwt = require("jsonwebtoken");
 const fs = require('fs');
 const os = require('os');
@@ -109,6 +111,18 @@ const YOUTUBE_REQUEST_HEADERS = [
   "referer:youtube.com",
   "user-agent:Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 ];
+const AUDIO_CACHE_DIR = process.env.AUDIO_CACHE_DIR || path.join(path.dirname(ROOMS_BACKUP_PATH), 'audio-cache');
+const audioDownloadJobs = new Map();
+const AUDIO_PREPARE_TIMEOUT_MS = Number(process.env.AUDIO_PREPARE_TIMEOUT_MS || 45000);
+const AUDIO_MIME_TYPES = {
+  '.m4a': 'audio/mp4',
+  '.mp3': 'audio/mpeg',
+  '.webm': 'audio/webm',
+  '.opus': 'audio/ogg',
+  '.ogg': 'audio/ogg'
+};
+
+fs.mkdirSync(AUDIO_CACHE_DIR, { recursive: true });
 
 const YOUTUBE_COOKIE_FILE_PATH = process.env.YOUTUBE_COOKIE_FILE_PATH || path.join(os.tmpdir(), 'noni-youtube-cookies.txt');
 
@@ -157,6 +171,144 @@ const buildYoutubeExtractorArgs = () => {
   }
 
   return `youtube:${parts.join(';')}`;
+};
+
+const normalizeVideoId = (videoId) => String(videoId || '').trim().replace(/[^a-zA-Z0-9_-]/g, '');
+
+const findCachedAudioFile = (videoId) => {
+  const normalized = normalizeVideoId(videoId);
+  if (!normalized) return null;
+
+  const matches = fs.readdirSync(AUDIO_CACHE_DIR)
+    .filter((fileName) => fileName.startsWith(`${normalized}.`) && !fileName.endsWith('.part'))
+    .sort((left, right) => {
+      if (left.endsWith('.mp3')) return -1;
+      if (right.endsWith('.mp3')) return 1;
+      return left.localeCompare(right);
+    });
+
+  if (matches.length === 0) {
+    return null;
+  }
+
+  const fileName = matches[0];
+  const filePath = path.join(AUDIO_CACHE_DIR, fileName);
+  return {
+    fileName,
+    filePath,
+    mimeType: AUDIO_MIME_TYPES[path.extname(fileName).toLowerCase()] || 'audio/mpeg'
+  };
+};
+
+const transcodeToMp3 = (inputPath, outputPath) => new Promise((resolve, reject) => {
+  if (!ffmpegPath) {
+    reject(new Error('ffmpeg binary is unavailable'));
+    return;
+  }
+
+  execFile(
+    ffmpegPath,
+    ['-y', '-i', inputPath, '-vn', '-codec:a', 'libmp3lame', '-b:a', '192k', outputPath],
+    { timeout: 120000, maxBuffer: 20 * 1024 * 1024 },
+    (error, stdout, stderr) => {
+      if (error) {
+        reject(new Error(stderr || stdout || error.message));
+        return;
+      }
+      resolve(outputPath);
+    }
+  );
+});
+
+const ensureAudioFile = async (videoId) => {
+  const normalized = normalizeVideoId(videoId);
+  if (!normalized) {
+    throw new Error('Invalid videoId');
+  }
+
+  const cached = findCachedAudioFile(normalized);
+  if (cached) {
+    return cached;
+  }
+
+  if (audioDownloadJobs.has(normalized)) {
+    return audioDownloadJobs.get(normalized);
+  }
+
+  const job = (async () => {
+    const videoUrl = `https://www.youtube.com/watch?v=${normalized}`;
+    const sourceTemplate = path.join(AUDIO_CACHE_DIR, `${normalized}.source.%(ext)s`);
+    const finalAudioPath = path.join(AUDIO_CACHE_DIR, `${normalized}.mp3`);
+    const ytDlpOptions = {
+      format: "18/best[acodec!=none]/best",
+      noWarnings: true,
+      noCheckCertificates: true,
+      noPlaylist: true,
+      extractorArgs: buildYoutubeExtractorArgs(),
+      addHeader: YOUTUBE_REQUEST_HEADERS,
+      output: sourceTemplate
+    };
+
+    const cookiesFile = resolveYoutubeCookiesFile();
+    if (cookiesFile) {
+      ytDlpOptions.cookies = cookiesFile;
+    }
+
+    fs.readdirSync(AUDIO_CACHE_DIR)
+      .filter((fileName) => fileName.startsWith(`${normalized}.source.`))
+      .forEach((fileName) => {
+        try { fs.unlinkSync(path.join(AUDIO_CACHE_DIR, fileName)); } catch (error) {}
+      });
+
+    await ytDlpExec(videoUrl, ytDlpOptions);
+
+    const sourceFile = fs.readdirSync(AUDIO_CACHE_DIR)
+      .filter((fileName) => fileName.startsWith(`${normalized}.source.`) && !fileName.endsWith('.part'))
+      .sort()[0];
+
+    if (!sourceFile) {
+      throw new Error('Audio source download completed but source file was not found');
+    }
+
+    await transcodeToMp3(path.join(AUDIO_CACHE_DIR, sourceFile), finalAudioPath);
+
+    try { fs.unlinkSync(path.join(AUDIO_CACHE_DIR, sourceFile)); } catch (error) {}
+
+    const downloaded = findCachedAudioFile(normalized);
+    if (!downloaded) {
+      throw new Error('Audio file was transcoded but final file was not found');
+    }
+    return downloaded;
+  })();
+
+  audioDownloadJobs.set(normalized, job);
+
+  try {
+    return await job;
+  } finally {
+    audioDownloadJobs.delete(normalized);
+  }
+};
+
+const prefetchAudioFile = (videoId) => {
+  const normalized = normalizeVideoId(videoId);
+  if (!normalized) return;
+  ensureAudioFile(normalized).catch((error) => {
+    console.error(`Audio prefetch failed for ${normalized}:`, error.message || error);
+  });
+};
+
+const prefetchRoomAudio = (room) => {
+  if (!room) return;
+
+  const idsToPrefetch = [
+    room.currentSong?.id,
+    ...room.queue.slice(0, 2).map((song) => song?.id)
+  ]
+    .filter(Boolean)
+    .map((videoId) => normalizeVideoId(videoId));
+
+  [...new Set(idsToPrefetch)].forEach(prefetchAudioFile);
 };
 
 const extractAudioUrl = (videoId) => new Promise(async (resolve, reject) => {
@@ -232,6 +384,23 @@ app.get("/api/stream-url/:videoId", async (req, res) => {
   } catch (err) {
     console.error("Stream resolution error:", err);
     res.status(500).json({ error: "Failed to resolve stream URL: " + err.message });
+  }
+});
+
+app.get("/api/audio-file/:videoId", async (req, res) => {
+  try {
+    const audioFile = await Promise.race([
+      ensureAudioFile(req.params.videoId),
+      new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Audio preparation timed out')), AUDIO_PREPARE_TIMEOUT_MS);
+      })
+    ]);
+    res.type(audioFile.mimeType);
+    res.setHeader('Accept-Ranges', 'bytes');
+    res.sendFile(audioFile.filePath);
+  } catch (error) {
+    console.error("Audio file error:", error);
+    res.status(500).json({ error: "Failed to prepare audio file: " + (error.message || error) });
   }
 });
 
@@ -451,6 +620,7 @@ io.on("connection", (socket) => {
       room.activeUsers.push({ id: socket.userId, username: socket.username, role: socket.role, socketId: socket.id });
     }
 
+    prefetchRoomAudio(room);
     emitRoomState(roomId);
   });
 
@@ -469,6 +639,7 @@ io.on("connection", (socket) => {
     } else {
       room.queue.push(songInstance);
     }
+    prefetchRoomAudio(room);
     emitRoomState(socket.roomId);
   });
 
@@ -549,6 +720,7 @@ io.on("connection", (socket) => {
         room.isPlaying = false;
       }
     }
+    prefetchRoomAudio(room);
     emitRoomState(roomId);
   };
 
@@ -597,6 +769,7 @@ io.on("connection", (socket) => {
     room.currentTime = 0;
     room.lastUpdateTime = Date.now();
     room.isPlaying = true;
+    prefetchRoomAudio(room);
     emitRoomState(socket.roomId);
   });
 
@@ -612,6 +785,7 @@ io.on("connection", (socket) => {
       room.currentTime = 0;
       room.lastUpdateTime = Date.now();
       room.isPlaying = true;
+      prefetchRoomAudio(room);
       emitRoomState(socket.roomId);
     }
   });

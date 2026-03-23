@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import YouTube from 'react-youtube';
 import { Music, Plus, Play, Pause, SkipForward, SkipBack, Search, LogOut, Heart, Library, ListMusic, Home } from 'lucide-react';
 import './dashboard.css';
 import { BACKEND_URL } from './config';
@@ -19,7 +18,6 @@ export default function Dashboard({ user, onLogout, onCreate, onJoin }: any) {
   const [syncTime, setSyncTime] = useState(0);
   
   const audioRef = useRef<HTMLAudioElement>(null);
-  const youtubePlayerRef = useRef<any>(null);
   const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [joinId, setJoinId] = useState('');
   
@@ -91,35 +89,23 @@ export default function Dashboard({ user, onLogout, onCreate, onJoin }: any) {
 
   useEffect(() => {
     if (currentSong) {
+      const audioFileUrl = `${BACKEND_URL}/api/audio-file/${currentSong.id}`;
       if (isNative) {
-        fetch(`${BACKEND_URL}/api/stream-url/${currentSong.id}`)
-          .then(res => res.json())
-          .then(data => {
-            if (data.url) {
-              try { NativeAudio.playStream({ url: data.url, title: currentSong.title, artist: currentSong.author }); } catch(e){}
-            }
-          })
-          .catch(() => {});
+        try { NativeAudio.playStream({ url: audioFileUrl, title: currentSong.title, artist: currentSong.author }); } catch(e){}
       } else {
         if (audioRef.current) {
           audioRef.current.pause();
-          audioRef.current.src = '';
-        }
-        const player = youtubePlayerRef.current;
-        if (player?.loadVideoById) {
-          try {
-            player.loadVideoById({ videoId: currentSong.id, startSeconds: 0 });
-            if (isPlaying) player.playVideo();
-            else player.pauseVideo();
-          } catch (e) {}
+          audioRef.current.src = audioFileUrl;
+          audioRef.current.load();
+          audioRef.current.currentTime = 0;
+          if (isPlaying) {
+            audioRef.current.play().catch(() => {});
+          }
         }
       }
     } else {
       if (isNative) { try { NativeAudio.pause(); } catch(e){} }
       else if (audioRef.current) { audioRef.current.pause(); audioRef.current.src = ''; }
-      if (youtubePlayerRef.current?.stopVideo) {
-        try { youtubePlayerRef.current.stopVideo(); } catch (e) {}
-      }
     }
   }, [currentSong?.id]);
 
@@ -127,32 +113,12 @@ export default function Dashboard({ user, onLogout, onCreate, onJoin }: any) {
     if (isNative) {
       if (isPlaying) { try { NativeAudio.resume(); } catch(e){} }
       else { try { NativeAudio.pause(); } catch(e){} }
-    } else if (youtubePlayerRef.current) {
-      try {
-        if (isPlaying) youtubePlayerRef.current.playVideo();
-        else youtubePlayerRef.current.pauseVideo();
-      } catch (e) {}
     } else {
       if (!audioRef.current || !audioRef.current.src) return;
       if (isPlaying) { audioRef.current.play().catch(() => {}); }
       else { audioRef.current.pause(); }
     }
   }, [isPlaying]);
-
-  useEffect(() => {
-    if (isNative || !currentSong || !youtubePlayerRef.current || !isPlaying) return;
-    const interval = setInterval(() => {
-      try {
-        const maybeTime = youtubePlayerRef.current?.getCurrentTime?.();
-        Promise.resolve(maybeTime).then((time) => {
-          if (typeof time === 'number' && !Number.isNaN(time)) {
-            setSyncTime(Math.floor(time));
-          }
-        }).catch(() => {});
-      } catch (e) {}
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [currentSong?.id, isPlaying]);
 
   useEffect(() => {
     if (!isNative) return; // web: onTimeUpdate drives syncTime
@@ -175,9 +141,6 @@ export default function Dashboard({ user, onLogout, onCreate, onJoin }: any) {
     const time = Number(e.target.value);
     setSyncTime(time);
     if (isNative) { try { NativeAudio.seek({ time }); } catch(err){} }
-    else if (youtubePlayerRef.current?.seekTo) {
-      try { youtubePlayerRef.current.seekTo(time, true); } catch (err) {}
-    }
     else if (audioRef.current) { audioRef.current.currentTime = time; }
   };
 
@@ -216,35 +179,6 @@ export default function Dashboard({ user, onLogout, onCreate, onJoin }: any) {
         onEnded={nextTrack}
         onTimeUpdate={() => { if (!isNative && audioRef.current) setSyncTime(Math.floor(audioRef.current.currentTime)); }}
       />
-      {!isNative && currentSong && (
-        <div style={{ position: 'fixed', right: '18px', bottom: '104px', width: '320px', zIndex: 60, background: 'rgba(12,12,12,0.96)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '14px', padding: '10px', boxShadow: '0 18px 45px rgba(0,0,0,0.35)' }}>
-          <div style={{ fontSize: '0.75rem', color: '#b3b3b3', marginBottom: '8px' }}>
-            Web playback uses the official YouTube player. If autoplay is blocked, press play once inside the player.
-          </div>
-          <YouTube
-            videoId={currentSong.id}
-            opts={{
-              width: '320',
-              height: '200',
-              playerVars: {
-                autoplay: isPlaying ? 1 : 0,
-                controls: 1,
-                playsinline: 1,
-                rel: 0,
-                origin: window.location.origin
-              }
-            }}
-            onReady={(event: any) => {
-              youtubePlayerRef.current = event.target;
-              try {
-                if (isPlaying) event.target.playVideo();
-                else event.target.pauseVideo();
-              } catch (e) {}
-            }}
-            onEnd={() => nextTrack()}
-          />
-        </div>
-      )}
       {/* LEFT SIDEBAR */}
       <nav className="nav-sidebar">
          <div className="brand-logo">

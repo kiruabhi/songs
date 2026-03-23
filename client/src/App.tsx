@@ -1,7 +1,6 @@
 import Dashboard from './Dashboard';
 import React, { useState, useEffect, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
-import YouTube from 'react-youtube';
 import { Music, Plus, Play, Pause, SkipForward, SkipBack, Copy, Search, Check, Disc, Heart, Repeat, LogOut, Users, Compass, Settings, X } from 'lucide-react';
 import './index.css';
 import './dashboard.css';
@@ -164,7 +163,6 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
   const [activeTab, setActiveTab] = useState<'room' | 'liked' | 'admin' | 'recommend'>('room');
   const [likedSongs, setLikedSongs] = useState<Song[]>([]);
   const audioRef = useRef<HTMLAudioElement>(null);
-  const youtubePlayerRef = useRef<any>(null);
 
   const [copied, setCopied] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -176,7 +174,6 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
   const [syncTime, setSyncTime] = useState(0);
   const [discoverQuery, setDiscoverQuery] = useState('');
   const [showFullPlayer, setShowFullPlayer] = useState(false);
-  const [webPlaybackMode, setWebPlaybackMode] = useState<'direct' | 'youtube'>(isNative ? 'direct' : 'youtube');
 
   const [showPrefModal, setShowPrefModal] = useState(false);
   const [preferences, setPreferences] = useState<string[]>([]);
@@ -193,7 +190,6 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
   const [showParticipants, setShowParticipants] = useState(false);
 
   const isHostOrAdmin = state.hostId === user.id || user.role === 'admin';
-  const isYoutubeFallback = !isNative && webPlaybackMode === 'youtube';
 
   useEffect(() => {
     stateRef.current = state;
@@ -209,11 +205,6 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
       return;
     }
 
-    if (isYoutubeFallback && youtubePlayerRef.current?.seekTo) {
-      try { youtubePlayerRef.current.seekTo(time, true); } catch (err) {}
-      return;
-    }
-
     if (audioRef.current) {
       audioRef.current.currentTime = time;
     }
@@ -223,14 +214,6 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
     if (isNative) {
       if (playing) { try { NativeAudio.resume(); } catch(e){} }
       else { try { NativeAudio.pause(); } catch(e){} }
-      return;
-    }
-
-    if (isYoutubeFallback && youtubePlayerRef.current) {
-      try {
-        if (playing) youtubePlayerRef.current.playVideo();
-        else youtubePlayerRef.current.pauseVideo();
-      } catch (err) {}
       return;
     }
 
@@ -346,24 +329,30 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
 
 
     const interval = setInterval(() => {
-      // Fake the sync time locally since NativeAudio doesn't transmit events to JS smoothly without overhead
+      if (!isNative) return;
+
+      // Native playback time is maintained locally because the plugin does not stream
+      // frequent progress events back into JS.
       const currentState = stateRef.current;
       if (currentState.isPlaying && !localPauseRef.current) {
-         setSyncTime(prev => {
-            const next = prev + 1;
-            if (currentState.currentSong && next >= currentState.currentSong.seconds) {
-               socket.emit('auto_skip');
-               return 0;
-            }
-            return next;
-         });
+        setSyncTime(prev => {
+          const next = prev + 1;
+          if (currentState.currentSong && next >= currentState.currentSong.seconds) {
+            socket.emit('auto_skip');
+            return 0;
+          }
+          return next;
+        });
       }
     }, 1000);
 
     const hostInterval = setInterval(() => {
       const currentState = stateRef.current;
       if (currentState.isPlaying && !localPauseRef.current) {
-        socket.emit('host_sync', { currentTime: syncTimeRef.current });
+        const currentTime = isNative
+          ? syncTimeRef.current
+          : Math.floor(audioRef.current?.currentTime || syncTimeRef.current);
+        socket.emit('host_sync', { currentTime });
       }
     }, 4000);
 
@@ -480,47 +469,31 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
   // --- AUDIO STREAM PLAYBACK (Web: HTML audio | Native: NativeAudio plugin) ---
   useEffect(() => {
     if (state.currentSong) {
+      const audioFileUrl = `${BACKEND_URL}/api/audio-file/${state.currentSong.id}`;
       if (isNative) {
-        fetch(`${BACKEND_URL}/api/stream-url/${state.currentSong.id}`)
-          .then(res => res.json())
-          .then(data => {
-            if (data.url) {
-              try {
-                NativeAudio.playStream({
-                  url: data.url,
-                  title: state.currentSong?.title,
-                  artist: state.currentSong?.author,
-                  headers: data.headers || {}
-                });
-                NativeAudio.seek({ time: state.currentTime > 0 ? state.currentTime : 0 });
-              } catch(e) {}
-            }
-          })
-          .catch(() => {});
+        try {
+          NativeAudio.playStream({
+            url: audioFileUrl,
+            title: state.currentSong?.title,
+            artist: state.currentSong?.author,
+            headers: {}
+          });
+          NativeAudio.seek({ time: state.currentTime > 0 ? state.currentTime : 0 });
+        } catch(e) {}
       } else {
-        setWebPlaybackMode('youtube');
         if (audioRef.current) {
           audioRef.current.pause();
-          audioRef.current.src = '';
-        }
-        const player = youtubePlayerRef.current;
-        if (player?.loadVideoById) {
-          try {
-            player.loadVideoById({ videoId: state.currentSong.id, startSeconds: state.currentTime > 0 ? state.currentTime : 0 });
-            if (state.isPlaying && !localPauseRef.current) {
-              player.playVideo();
-            } else {
-              player.pauseVideo();
-            }
-          } catch (e) {}
+          audioRef.current.src = audioFileUrl;
+          audioRef.current.load();
+          audioRef.current.currentTime = state.currentTime > 0 ? state.currentTime : 0;
+          if (state.isPlaying && !localPauseRef.current) {
+            audioRef.current.play().catch(() => {});
+          }
         }
       }
     } else {
       if (isNative) { try { NativeAudio.pause(); } catch(e){} }
       else if (audioRef.current) { audioRef.current.pause(); audioRef.current.src = ''; }
-      if (youtubePlayerRef.current?.stopVideo) {
-        try { youtubePlayerRef.current.stopVideo(); } catch (e) {}
-      }
     }
   }, [state.currentSong?.queueId, state.currentSong?.id]);
 
@@ -528,7 +501,7 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
   useEffect(() => {
     const playing = state.isPlaying && !localPauseRef.current;
     syncPlaybackState(playing);
-  }, [state.isPlaying, isLocallyPaused, webPlaybackMode]);
+  }, [state.isPlaying, isLocallyPaused]);
 
 
 
@@ -553,56 +526,26 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
       <audio 
         ref={audioRef}
         onEnded={() => socket.emit('auto_skip')}
-        onError={() => {
-          if (isNative || webPlaybackMode === 'direct') {
-            socket.emit('error_skip');
+        onError={() => socket.emit('error_skip')}
+        onLoadedMetadata={() => {
+          if (!audioRef.current || isNative || !state.currentSong) return;
+          if (Math.abs(audioRef.current.currentTime - state.currentTime) > 2) {
+            audioRef.current.currentTime = state.currentTime;
+          }
+        }}
+        onCanPlay={() => {
+          if (!audioRef.current || isNative || !state.currentSong) return;
+          if (state.isPlaying && !localPauseRef.current) {
+            audioRef.current.play().catch(() => {});
           }
         }}
         onTimeUpdate={() => {
-          if (!isNative && webPlaybackMode === 'direct' && audioRef.current) {
+          if (!isNative && audioRef.current) {
             setSyncTime(Math.floor(audioRef.current.currentTime));
           }
         }}
         style={{ display: 'none' }}
       />
-
-      {!isNative && state.currentSong && isYoutubeFallback && (
-        <div style={{ position: 'fixed', right: '18px', bottom: '104px', width: '320px', zIndex: 70, background: 'rgba(12,12,12,0.96)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '14px', padding: '10px', boxShadow: '0 18px 45px rgba(0,0,0,0.35)' }}>
-          <div style={{ fontSize: '0.75rem', color: '#c7c7c7', marginBottom: '8px' }}>
-            Web playback uses the official YouTube player. If autoplay is blocked, press play once inside the player.
-          </div>
-          <YouTube
-            videoId={state.currentSong.id}
-            opts={{
-              width: '320',
-              height: '200',
-              playerVars: {
-                autoplay: state.isPlaying && !localPauseRef.current ? 1 : 0,
-                controls: 1,
-                disablekb: 0,
-                fs: 1,
-                playsinline: 1,
-                rel: 0,
-                origin: window.location.origin,
-                start: state.currentTime > 0 ? state.currentTime : 0
-              }
-            }}
-            onReady={(event: any) => {
-              youtubePlayerRef.current = event.target;
-              try {
-                event.target.seekTo(state.currentTime > 0 ? state.currentTime : 0, true);
-                if (state.isPlaying && !localPauseRef.current) event.target.playVideo();
-                else event.target.pauseVideo();
-              } catch (e) {}
-            }}
-            onStateChange={(event: any) => {
-              if (event.data === 0) {
-                socket.emit('auto_skip');
-              }
-            }}
-          />
-        </div>
-      )}
 
       {/* TOP NAV */}
       <nav className="jam-navbar">
