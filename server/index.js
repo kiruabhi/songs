@@ -103,10 +103,43 @@ const searchYoutube = async (query) => {
     }));
 };
 
-const extractAudioUrl = (videoId) => new Promise((resolve, reject) => {
+const YT_DLP_RUNNERS = [
+  { command: process.env.YT_DLP_BIN || "yt-dlp", baseArgs: [] },
+  { command: "python3", baseArgs: ["-m", "yt_dlp"] },
+  { command: "python", baseArgs: ["-m", "yt_dlp"] }
+];
+
+const execYtDlp = (command, args) => new Promise((resolve, reject) => {
+  execFile(command, args, { timeout: 30000, maxBuffer: 20 * 1024 * 1024 }, (error, stdout, stderr) => {
+    if (stderr) {
+      console.error(`yt-dlp stderr (${command}):`, stderr);
+    }
+    if (error) {
+      error.stderr = stderr;
+      reject(error);
+      return;
+    }
+    resolve(stdout);
+  });
+});
+
+const runYtDlp = async (sharedArgs) => {
+  const failures = [];
+
+  for (const runner of YT_DLP_RUNNERS) {
+    try {
+      return await execYtDlp(runner.command, [...runner.baseArgs, ...sharedArgs]);
+    } catch (error) {
+      failures.push(`${runner.command}: ${error.message}`);
+    }
+  }
+
+  throw new Error(`yt-dlp is unavailable. Tried: ${failures.join(" | ")}`);
+};
+
+const extractAudioUrl = (videoId) => new Promise(async (resolve, reject) => {
   const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
   const args = [
-    "-m", "yt_dlp",
     "-f", "bestaudio[ext=m4a]/bestaudio",
     "--dump-single-json",
     "--no-warnings",
@@ -117,40 +150,31 @@ const extractAudioUrl = (videoId) => new Promise((resolve, reject) => {
 
   args.push(videoUrl);
 
-  execFile("python", args, { timeout: 30000, maxBuffer: 20 * 1024 * 1024 }, (error, stdout, stderr) => {
-    if (stderr) {
-      console.error("yt-dlp stderr:", stderr);
-    }
-    if (error) {
-      reject(error);
+  try {
+    const stdout = await runYtDlp(args);
+    const info = JSON.parse(stdout);
+    const requestedDownloads = Array.isArray(info.requested_downloads) ? info.requested_downloads : [];
+    const formats = Array.isArray(info.formats) ? info.formats : [];
+    const bestAudio =
+      requestedDownloads.find(f => f?.url) ||
+      formats.find(f => f.acodec !== "none" && f.vcodec === "none" && f.ext === "m4a" && f.url) ||
+      formats.find(f => f.acodec !== "none" && f.vcodec === "none" && f.url) ||
+      formats.find(f => f.acodec !== "none" && f.url);
+
+    if (!bestAudio?.url) {
+      reject(new Error("No playable audio format found"));
       return;
     }
 
-    try {
-      const info = JSON.parse(stdout);
-      const requestedDownloads = Array.isArray(info.requested_downloads) ? info.requested_downloads : [];
-      const formats = Array.isArray(info.formats) ? info.formats : [];
-      const bestAudio =
-        requestedDownloads.find(f => f?.url) ||
-        formats.find(f => f.acodec !== "none" && f.vcodec === "none" && f.ext === "m4a" && f.url) ||
-        formats.find(f => f.acodec !== "none" && f.vcodec === "none" && f.url) ||
-        formats.find(f => f.acodec !== "none" && f.url);
-
-      if (!bestAudio?.url) {
-        reject(new Error("No playable audio format found"));
-        return;
-      }
-
-      resolve({
-        url: bestAudio.url,
-        mimeType: bestAudio.mimeType || bestAudio.ext || "audio/mp4",
-        formatId: bestAudio.format_id || null,
-        headers: bestAudio.http_headers || info.http_headers || {}
-      });
-    } catch (parseError) {
-      reject(parseError);
-    }
-  });
+    resolve({
+      url: bestAudio.url,
+      mimeType: bestAudio.mimeType || bestAudio.ext || "audio/mp4",
+      formatId: bestAudio.format_id || null,
+      headers: bestAudio.http_headers || info.http_headers || {}
+    });
+  } catch (error) {
+    reject(error);
+  }
 });
 
 
