@@ -1,0 +1,3467 @@
+﻿
+adb_logs2.txt:7:03-23 
+10:30:35.182  1709  5347 D 
+CoreBackPreview: 
+Window{9915970 u0 com.nonim
+usic.app/com.nonimusic.app.
+MainActivity}: Setting 
+back callback OnBackInvoked
+CallbackInfo{mCallback=andr
+oid.window.IOnBackInvokedCa
+llback$Stub$Proxy@a7b50d2, 
+mPriority=0, mIsAnimationCa
+llback=false, 
+mOverrideBehavior=0}
+adb_logs2.txt:84:03-23 
+10:30:35.914  1709  1732 V 
+WindowManager:         
+{WCT{RemoteToken{d993b7 
+Task{def21fd #1363 
+type=standard A=10451:com.n
+onimusic.app}}} m=TO_BACK 
+f=NONE pTaskId=-1 leash=Sur
+face(name=Task=1363)/@0x51d
+83e sb=Rect(0, 0 - 1220, 
+2712) eb=Rect(0, 0 - 1220, 
+2712) epz=Point(1220, 
+2712) d=0 taskParent=-1},
+adb_logs2.txt:109:03-23 
+10:30:36.025  1709  6442 W 
+PackageConfigPersister: 
+App-specific configuration 
+not found for packageName: 
+com.nonimusic.app and 
+userId: 0
+adb_logs2.txt:150:03-23 
+10:30:40.899  1709  5413 I 
+AppsFilter: interaction: 
+PackageSetting{c4ef933 
+com.nonimusic.app/10451} 
+-> PackageSetting{7b8b22a c
+om.google.android.inputmeth
+od.latin/10232} BLOCKED
+adb_logs2.txt:154:03-23 
+10:30:40.916  1709  6442 D 
+ContentCapturePerUserServic
+e: Notified activity 
+assist data for activity: 
+Token{efa8dbb 
+ActivityRecord{176218024 
+u0 com.nonimusic.app/.MainA
+ctivity t1363}} without a 
+session Id
+adb_logs2.txt:155:03-23 
+10:30:40.920  1709  3313 W 
+PackageConfigPersister: 
+App-specific configuration 
+not found for packageName: 
+com.nonimusic.app and 
+userId: 0
+adb_logs2.txt:163:03-23 
+10:30:40.991  1709  5414 D 
+CoreBackPreview: 
+Window{9915970 u0 com.nonim
+usic.app/com.nonimusic.app.
+MainActivity}: Setting 
+back callback OnBackInvoked
+CallbackInfo{mCallback=andr
+oid.window.IOnBackInvokedCa
+llback$Stub$Proxy@b00cf09, 
+mPriority=0, 
+mIsAnimationCallback=true, 
+mOverrideBehavior=0}
+adb_logs2.txt:181:03-23 
+10:30:45.704  1709  3906 D 
+CoreBackPreview: 
+Window{9915970 u0 com.nonim
+usic.app/com.nonimusic.app.
+MainActivity}: Setting 
+back callback OnBackInvoked
+CallbackInfo{mCallback=andr
+oid.window.IOnBackInvokedCa
+llback$Stub$Proxy@e6d17ca, 
+mPriority=0, mIsAnimationCa
+llback=false, 
+mOverrideBehavior=0}
+adb_logs2.txt:182:03-23 
+10:30:45.723  1709  3647 W 
+PackageConfigPersister: 
+App-specific configuration 
+not found for packageName: 
+com.nonimusic.app and 
+userId: 0
+adb_logs2.txt:185:03-23 
+10:30:46.009  1709  1739 D 
+addPss  : tracker=ProcessSt
+ate{3fbd824 
+com.nonimusic.app/10451 
+pkg=com.nonimusic.app}
+adb_logs2.txt:186:03-23 
+10:30:46.010  1709  1739 D 
+addPss  : tracker=ProcessSt
+ate{ac82481 com.google.andr
+oid.webview:sandboxed_proce
+ss0:org.chromium.content.ap
+p.SandboxedProcessService0:
+0/10451 
+pkg=com.nonimusic.app}
+adb_logs2.txt:327:03-23 
+10:31:11.550  1709  3647 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:328:03-23 
+10:31:11.551  1709  6442 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:370:03-23 
+10:31:15.487  1709  3313 I 
+AppsFilter: interaction: 
+PackageSetting{c4ef933 
+com.nonimusic.app/10451} 
+-> PackageSetting{c15210c c
+om.motorola.motosignature.a
+pp/10145} BLOCKED
+adb_logs2.txt:397:03-23 
+10:31:16.481  1709  5414 W 
+AppOps  : Noting op not 
+finished: uid 10451 pkg 
+com.nonimusic.app code 154 
+startTime of in progress 
+event=1774242071551
+adb_logs2.txt:399:03-23 
+10:31:16.491  1709  6442 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:400:03-23 
+10:31:16.492  1709  1727 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:507:03-23 
+10:31:21.161  1709  1739 D 
+addPss  : tracker=ProcessSt
+ate{ac82481 com.google.andr
+oid.webview:sandboxed_proce
+ss0:org.chromium.content.ap
+p.SandboxedProcessService0:
+0/10451 
+pkg=com.nonimusic.app}
+adb_logs2.txt:572:03-23 
+10:31:21.795  1709  3313 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:573:03-23 
+10:31:21.795  1709  3313 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:574:03-23 
+10:31:21.796  1709  5251 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:575:03-23 
+10:31:21.796  1709  5251 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:629:03-23 
+10:31:21.937  1709  3893 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:630:03-23 
+10:31:21.938  1709  6469 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:631:03-23 
+10:31:21.954  1709  5251 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:632:03-23 
+10:31:21.954  1709  5251 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:633:03-23 
+10:31:21.954  1709  3893 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:634:03-23 
+10:31:21.954  1709  3893 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:711:03-23 
+10:31:22.615  1709  3648 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:712:03-23 
+10:31:22.616  1709  3648 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:722:03-23 
+10:31:22.635  1709  3648 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:723:03-23 
+10:31:22.635  1709  3648 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:727:03-23 
+10:31:22.637  1709  5347 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:728:03-23 
+10:31:22.638  1709  5347 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:805:03-23 
+10:31:23.271  1709  3906 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:806:03-23 
+10:31:23.272  1709  6469 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:807:03-23 
+10:31:23.288  1709  3648 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:808:03-23 
+10:31:23.288  1709  3648 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:809:03-23 
+10:31:23.289  1709  6469 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:810:03-23 
+10:31:23.289  1709  6469 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:914:03-23 
+10:31:23.430  1709  1739 W 
+MotoBatteryCareService: 
+uid: 10451 
+pkgName:com.nonimusic.app 
+come to foreground
+adb_logs2.txt:942:03-23 
+10:31:23.498  1709  1732 V 
+WindowManager:         
+{WCT{RemoteToken{d993b7 
+Task{def21fd #1363 
+type=standard A=10451:com.n
+onimusic.app}}} m=TO_FRONT 
+f=NONE 
+p=WCT{RemoteToken{c33d0da D
+efaultTaskDisplayArea@70755
+165(displayId=0)}} 
+pTaskId=-1 leash=Surface(na
+me=Task=1363)/@0x51d83e 
+sb=Rect(0, 0 - 1220, 2712) 
+eb=Rect(0, 0 - 1220, 2712) 
+epz=Point(1220, 2712) d=0 
+taskParent=-1},
+adb_logs2.txt:957:03-23 
+10:31:23.507  1709  5347 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:958:03-23 
+10:31:23.508  1709  3648 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:965:03-23 
+10:31:23.531  1709  1739 W 
+MotoBatteryCareService: 
+uid: 10451 
+pkgName:com.nonimusic.app 
+come to foreground
+adb_logs2.txt:1018:03-23 
+10:31:23.664  1709  3313 W 
+PackageConfigPersister: 
+App-specific configuration 
+not found for packageName: 
+com.nonimusic.app and 
+userId: 0
+adb_logs2.txt:1068:03-23 
+10:31:26.841  1709  1732 V 
+WindowManager:         
+{WCT{RemoteToken{d993b7 
+Task{def21fd #1363 
+type=standard A=10451:com.n
+onimusic.app}}} m=TO_BACK 
+f=NONE pTaskId=-1 leash=Sur
+face(name=Task=1363)/@0x51d
+83e sb=Rect(0, 0 - 1220, 
+2712) eb=Rect(0, 0 - 1220, 
+2712) epz=Point(1220, 
+2712) d=0 taskParent=-1},
+adb_logs2.txt:1114:03-23 
+10:31:27.964  1709  5415 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:1115:03-23 
+10:31:27.964  1709  5415 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:1116:03-23 
+10:31:27.965  1709  6469 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:1117:03-23 
+10:31:27.965  1709  6469 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:1155:03-23 
+10:31:28.019  1709  5376 D 
+CoreBackPreview: 
+Window{9915970 u0 com.nonim
+usic.app/com.nonimusic.app.
+MainActivity}: Setting 
+back callback null
+adb_logs2.txt:1156:03-23 
+10:31:28.032  1709  3360 W 
+UsageStatsService: 
+Unexpected activity event 
+reported! (com.nonimusic.ap
+p/com.nonimusic.app.MainAct
+ivity event : 23 
+instanceId : 251301307)
+adb_logs2.txt:1157:03-23 
+10:31:28.045  1709  3906 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:1158:03-23 
+10:31:28.045  1709  3906 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:1159:03-23 
+10:31:28.045  1709  5376 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:1160:03-23 
+10:31:28.045  1709  5376 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:1350:03-23 
+10:31:54.565  1709  1739 D 
+addPss  : tracker=ProcessSt
+ate{3fbd824 
+com.nonimusic.app/10451 
+pkg=com.nonimusic.app}
+adb_logs2.txt:1393:03-23 
+10:32:21.994 15083 15083 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1396:03-23 
+10:32:22.004 15083 15083 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1611:03-23 
+10:35:27.827  1709  3311 D 
+InstallDependencyHelper: 
+No missing dependency for 
+com.nonimusic.app
+adb_logs2.txt:1612:03-23 
+10:35:27.843  1709  2313 I 
+PackageManager: Update 
+package com.nonimusic.app 
+code path from /data/app/~~
+JrfDvCAp-VaOm_loxmxHTg==/co
+m.nonimusic.app-QDFDq49cSU5
+HTQQwEayvgQ== to /data/app/
+vmdl419754606.tmp; Retain 
+data and using new
+adb_logs2.txt:1613:03-23 
+10:35:27.932  1709  2313 I 
+AppsFilter: interaction: 
+PackageSetting{c9c4219 com.
+oem.euiccpartnerapp/10225} 
+-> PackageSetting{28e02cd 
+com.nonimusic.app/10451} 
+BLOCKED
+adb_logs2.txt:1614:03-23 
+10:35:27.933  1709  2313 I 
+AppsFilter: interaction: 
+PackageSetting{c9c4219 com.
+oem.euiccpartnerapp/10225} 
+-> PackageSetting{868061b 
+com.nonimusic.app/10451} 
+BLOCKED
+adb_logs2.txt:1615:03-23 
+10:35:27.998  1709  1743 I 
+ActivityManager: Force 
+stopping com.nonimusic.app 
+appid=10451 user=-1: 
+installPackageLI
+adb_logs2.txt:1616:03-23 
+10:35:28.005  1709  1743 I 
+ActivityManager: Killing 15
+348:com.nonimusic.app/u0a45
+1 (adj 200, setSvc 
+-10000): stop 
+com.nonimusic.app due to 
+installPackageLI
+adb_logs2.txt:1618:03-23 
+10:35:28.019  1709  2313 I 
+PackageManager: 
+installation completed for 
+package:com.nonimusic.app. 
+Final code path: /data/app/
+~~0ZvyWxBUKPSXSX1tELCLmg==/
+com.nonimusic.app-I2Wh1MfRL
+2FKANRNftWrJQ==
+adb_logs2.txt:1620:03-23 
+10:35:28.020  1709  2313 I 
+AppsFilter: interaction: 
+PackageSetting{9ca7e2c com.
+oem.euiccpartnerapp/10225} 
+-> PackageSetting{c986c00 
+com.nonimusic.app/10451} 
+BLOCKED
+adb_logs2.txt:1625:03-23 
+10:35:28.035  1709  2313 I 
+ActivityManager: Force 
+stopping com.nonimusic.app 
+appid=10451 user=0: pkg 
+removed
+adb_logs2.txt:1635:03-23 
+10:35:28.075 12147 12147 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1636:03-23 
+10:35:28.075  2480  2480 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1637:03-23 
+10:35:28.076  2647  2647 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1638:03-23 
+10:35:28.076 17592 17592 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1639:03-23 
+10:35:28.077 13517 13517 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1640:03-23 
+10:35:28.077 31624 31624 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1641:03-23 
+10:35:28.078 13291 13291 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1642:03-23 
+10:35:28.079 24275 24275 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1643:03-23 
+10:35:28.079 12398 12398 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1644:03-23 
+10:35:28.079 16383 16383 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1645:03-23 
+10:35:28.079  3815  3815 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1646:03-23 
+10:35:28.080  7264  7264 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1647:03-23 
+10:35:28.080  1709  1709 I 
+Telecom : CarModeTracker: 
+Package com.nonimusic.app 
+is not tracked.: SSH.oR@GTI
+adb_logs2.txt:1648:03-23 
+10:35:28.080  3796  3796 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1649:03-23 
+10:35:28.081  3742  3742 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1650:03-23 
+10:35:28.081  3709  3709 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1651:03-23 
+10:35:28.081 16172 16172 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1652:03-23 
+10:35:28.081  3806  3806 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1653:03-23 
+10:35:28.080 13283 13283 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1656:03-23 
+10:35:28.082  2480  2480 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1657:03-23 
+10:35:28.082 12147 12147 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1658:03-23 
+10:35:28.081  3722  3722 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1659:03-23 
+10:35:28.083  3824  3824 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1660:03-23 
+10:35:28.085 13283 13283 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1662:03-23 
+10:35:28.085  3722  3722 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1664:03-23 
+10:35:28.087  3577  3577 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1665:03-23 
+10:35:28.088  3577  3577 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1667:03-23 
+10:35:28.093  3806  3806 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1668:03-23 
+10:35:28.093  3709  3709 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1669:03-23 
+10:35:28.094  3815  3815 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1670:03-23 
+10:35:28.094  3824  3824 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1671:03-23 
+10:35:28.095 12398 12398 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1672:03-23 
+10:35:28.095 24275 24275 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1674:03-23 
+10:35:28.095 18294 18294 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1676:03-23 
+10:35:28.095 18079 18079 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1677:03-23 
+10:35:28.096  2647  2647 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1678:03-23 
+10:35:28.096 25211 25211 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1679:03-23 
+10:35:28.098 13462 13462 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1680:03-23 
+10:35:28.098 18294 18294 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1681:03-23 
+10:35:28.098 13248 13248 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1682:03-23 
+10:35:28.098 16383 16383 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1683:03-23 
+10:35:28.098  5154  5154 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1684:03-23 
+10:35:28.098 13458 13458 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1685:03-23 
+10:35:28.099 19584 19584 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1686:03-23 
+10:35:28.099  3783  3783 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1687:03-23 
+10:35:28.100  3725  3725 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1688:03-23 
+10:35:28.100  3725  3725 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1689:03-23 
+10:35:28.102  5018  5018 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1690:03-23 
+10:35:28.103  5068  5068 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1691:03-23 
+10:35:28.103  5068  5068 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1692:03-23 
+10:35:28.104  5211  5211 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1693:03-23 
+10:35:28.105  5045  5045 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1694:03-23 
+10:35:28.105  1709  3443 W 
+PackageConfigPersister: 
+App-specific configuration 
+not found for packageName: 
+com.nonimusic.app and 
+userId: 0
+adb_logs2.txt:1695:03-23 
+10:35:28.105  3878  3878 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1696:03-23 
+10:35:28.105  5045  5045 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1697:03-23 
+10:35:28.105  5083  5083 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1698:03-23 
+10:35:28.106  5083  5083 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1699:03-23 
+10:35:28.106  3742  3742 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1700:03-23 
+10:35:28.106  5033  5033 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1701:03-23 
+10:35:28.107  5033  5033 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1702:03-23 
+10:35:28.107  4795  4795 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1703:03-23 
+10:35:28.108  5078  5078 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1704:03-23 
+10:35:28.108  5078  5078 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1705:03-23 
+10:35:28.108  4795  4795 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1706:03-23 
+10:35:28.112  3783  3783 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1709:03-23 
+10:35:28.115  1709  5414 I 
+MediaSessionStack: 
+removeSession | record: com
+.nonimusic.app/NoniMusicSes
+sion/297 (userId=0)
+adb_logs2.txt:1711:03-23 
+10:35:28.118  1709  3519 D 
+ShortcutService: replacing 
+package: com.nonimusic.app 
+userId=0
+adb_logs2.txt:1712:03-23 
+10:35:28.118  3878  3878 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1713:03-23 
+10:35:28.123 17061 17061 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1714:03-23 
+10:35:28.125 25211 25211 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1715:03-23 
+10:35:28.125 17137 17137 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1716:03-23 
+10:35:28.125  3677  3677 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1717:03-23 
+10:35:28.125  3796  3796 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1718:03-23 
+10:35:28.125  3727  3727 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1719:03-23 
+10:35:28.125  3677  3677 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1720:03-23 
+10:35:28.125 18079 18079 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1721:03-23 
+10:35:28.125 17061 17061 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1722:03-23 
+10:35:28.126  3727  3727 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1723:03-23 
+10:35:28.126 17137 17137 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1724:03-23 
+10:35:28.127 13517 13517 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1725:03-23 
+10:35:28.127 13291 13291 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1726:03-23 
+10:35:28.127 15909 15909 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1727:03-23 
+10:35:28.128 31246 31246 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1728:03-23 
+10:35:28.128 15909 15909 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1729:03-23 
+10:35:28.128 13500 13500 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1730:03-23 
+10:35:28.130  5018  5018 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1731:03-23 
+10:35:28.130 31624 31624 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1732:03-23 
+10:35:28.131 17592 17592 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1733:03-23 
+10:35:28.131 16172 16172 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1734:03-23 
+10:35:28.131  1709  1709 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1735:03-23 
+10:35:28.131  1709  1709 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1736:03-23 
+10:35:28.131  7264  7264 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1737:03-23 
+10:35:28.132 20920 20920 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1738:03-23 
+10:35:28.132  1709  6469 V 
+ActivityManager: Got 
+obituary of 
+15348:com.nonimusic.app
+adb_logs2.txt:1739:03-23 
+10:35:28.133 28072 28072 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1740:03-23 
+10:35:28.135 28072 28072 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1741:03-23 
+10:35:28.135 31246 31246 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1742:03-23 
+10:35:28.135 20920 20920 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1743:03-23 
+10:35:28.136 13500 13500 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1744:03-23 
+10:35:28.144 13458 13458 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1745:03-23 
+10:35:28.144 19584 19584 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1746:03-23 
+10:35:28.145  5154  5154 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1747:03-23 
+10:35:28.145 13248 13248 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1748:03-23 
+10:35:28.145  5211  5211 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1750:03-23 
+10:35:28.146 13462 13462 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1755:03-23 
+10:35:28.146 12003 12003 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1758:03-23 
+10:35:28.148  4523  4523 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1759:03-23 
+10:35:28.152 12003 12003 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1760:03-23 
+10:35:28.156 10343 10343 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1761:03-23 
+10:35:28.157 12902 12902 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1762:03-23 
+10:35:28.165 12902 12902 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1763:03-23 
+10:35:28.172  4523  4523 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1767:03-23 
+10:35:28.176  1709  4027 I 
+ActivityManager: Force 
+stopping com.nonimusic.app 
+appid=10451 user=0: from 
+pid 17961 and uid 2000
+adb_logs2.txt:1768:03-23 
+10:35:28.179 10343 10343 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1777:03-23 
+10:35:28.191  1709  4027 I 
+AppsFilter: interaction: 
+PackageSetting{9ca7e2c com.
+oem.euiccpartnerapp/10225} 
+-> PackageSetting{769b8f7 
+com.nonimusic.app/10451} 
+BLOCKED
+adb_logs2.txt:1781:03-23 
+10:35:28.215  3827  3827 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1782:03-23 
+10:35:28.215  3827  3827 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1783:03-23 
+10:35:28.221  3755  3755 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1784:03-23 
+10:35:28.222  3755  3755 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1786:03-23 
+10:35:28.232  1709  1709 E 
+AppOps  : Operation not 
+started: uid=10451 pkg=com.
+nonimusic.app(null) 
+op=WAKE_LOCK
+adb_logs2.txt:1788:03-23 
+10:35:28.225 12382 12382 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1791:03-23 
+10:35:28.235 12382 12382 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1794:03-23 
+10:35:28.238  1709  1709 W 
+AlarmManager: Package 
+com.nonimusic.app, uid 
+10451 lost permission to 
+set exact alarms!
+adb_logs2.txt:1812:03-23 
+10:35:28.269  1709  3893 I 
+AppsFilter: interaction: 
+PackageSetting{9ca7e2c com.
+oem.euiccpartnerapp/10225} 
+-> PackageSetting{b6e39a7 
+com.nonimusic.app/10451} 
+BLOCKED
+adb_logs2.txt:1814:03-23 
+10:35:28.270  1709  3893 I 
+ActivityTaskManager: START 
+u0 {flg=0x10000000 
+xflg=0x5 cmp=com.nonimusic.
+app/.MainActivity} with 
+LAUNCH_SINGLE_TASK from 
+uid 2000 
+(startActivityAsUser) 
+(BAL_ALLOW_PERMISSION) 
+result code=0
+adb_logs2.txt:1815:03-23 
+10:35:28.271  3577  3663 V 
+WindowManagerShell: 
+Transition requested 
+(#11202): android.os.Binder
+Proxy@5bba0f9 
+TransitionRequestInfo { 
+type = OPEN, triggerTask = 
+TaskInfo{userId=0 
+taskId=1364 
+effectiveUid=10451 
+displayId=0 isRunning=true 
+baseIntent=Intent { 
+flg=0x10000000 cmp=com.noni
+music.app/.MainActivity } b
+aseActivity=ComponentInfo{c
+om.nonimusic.app/com.nonimu
+sic.app.MainActivity} topAc
+tivity=ComponentInfo{com.no
+nimusic.app/com.nonimusic.a
+pp.MainActivity} 
+origActivity=null realActiv
+ity=ComponentInfo{com.nonim
+usic.app/com.nonimusic.app.
+MainActivity} 
+numActivities=1 
+lastActiveTime=741069591 
+supportsMultiWindow=true su
+pportsGlobalFreeform=true 
+resizeMode=1 
+isResizeable=true 
+isAppLocked=false isShowDec
+orCaptionWindowRequest=fals
+e canKillAndRestart=true 
+minWidth=-1 minHeight=-1 
+defaultMinSize=200 token=WC
+T{android.window.IWindowCon
+tainerToken$Stub$Proxy@5859
+83e} topActivityType=1 pict
+ureInPictureParams=null sho
+uldDockBigOverlays=false 
+launchIntoPipHostTaskId=-1 
+lastParentTaskIdBeforePip=-
+1 displayCutoutSafeInsets=R
+ect(0, 118 - 0, 0) topActiv
+ityInfo=ActivityInfo{c38e69
+f com.nonimusic.app.MainAct
+ivity} launchCookies=[] 
+positionInParent=Point(0, 
+0) parentTaskId=-1 
+isFocused=false 
+isVisible=false 
+isVisibleRequested=false is
+TopActivityNoDisplay=false 
+isSleeping=true 
+locusId=null 
+displayAreaFeatureId=1 isTo
+pActivityTransparent=false 
+isActivityStackTransparent=
+false lastNonFullscreenBoun
+ds=Rect(316, 771 - 905, 
+1991) capturedLink=null 
+capturedLinkTimestamp=0 
+requestedVisibleTypes=-9 to
+pActivityRequestOpenInBrows
+erEducationTimestamp=0 appC
+ompatTaskInfo=AppCompatTask
+Info { topActivityInSizeCom
+pat=false eligibleForLetter
+boxEducation= false isLette
+rboxEducationEnabled= 
+false isLetterboxDoubleTapE
+nabled= false eligibleForUs
+erAspectRatioButton= false 
+topActivityBoundsLetterboxe
+d= false 
+isFromLetterboxDoubleTap= 
+false topActivityLetterboxV
+erticalPosition= -1 topActi
+vityLetterboxHorizontalPosi
+tion= -1 topActivityLetterb
+oxWidth=-1 topActivityLette
+rboxHeight=-1 topActivityAp
+pBounds=Rect(0, 0 - 1220, 
+2712) isUserFullscreenOverr
+ideEnabled=false isSystemFu
+llscreenOverrideEnabled=fal
+se hasMinAspectRatioOverrid
+e=false topActivityLetterbo
+xBounds=null cameraCompatTa
+skInfo=CameraCompatTaskInfo
+ { freeformCameraCompatMode
+=inactive}} topActivityMain
+WindowFrame=null 
+lastDisplayId=0 
+callingUid=2000}, 
+pipChange = null, 
+remoteTransition = null, 
+displayChange = null, 
+flags = 0, debugId = 11202 
+}
+adb_logs2.txt:1824:03-23 
+10:35:28.282  6224  6224 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1825:03-23 
+10:35:28.283  6224  6224 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1827:03-23 
+10:35:28.285  1709  1744 I 
+ActivityManager: Start 
+proc 17993:com.nonimusic.ap
+p/u0a451 for top-activity {
+com.nonimusic.app/com.nonim
+usic.app.MainActivity}
+adb_logs2.txt:1838:03-23 
+10:35:28.361  1709  1732 V 
+WindowManager: Sent 
+Transition (#11202) 
+createdAt=03-23 
+10:35:28.258 via request=Tr
+ansitionRequestInfo { type 
+= OPEN, triggerTask = 
+TaskInfo{userId=0 
+taskId=1364 
+effectiveUid=10451 
+displayId=0 isRunning=true 
+baseIntent=Intent { 
+flg=0x10000000 cmp=com.noni
+music.app/.MainActivity } b
+aseActivity=ComponentInfo{c
+om.nonimusic.app/com.nonimu
+sic.app.MainActivity} topAc
+tivity=ComponentInfo{com.no
+nimusic.app/com.nonimusic.a
+pp.MainActivity} 
+origActivity=null realActiv
+ity=ComponentInfo{com.nonim
+usic.app/com.nonimusic.app.
+MainActivity} 
+numActivities=1 
+lastActiveTime=741069591 
+supportsMultiWindow=true su
+pportsGlobalFreeform=true 
+resizeMode=1 
+isResizeable=true 
+isAppLocked=false isShowDec
+orCaptionWindowRequest=fals
+e canKillAndRestart=true 
+minWidth=-1 minHeight=-1 
+defaultMinSize=200 token=WC
+T{RemoteToken{cf8e118 
+Task{2e2abcb #1364 
+type=standard A=10451:com.n
+onimusic.app}}} 
+topActivityType=1 pictureIn
+PictureParams=null shouldDo
+ckBigOverlays=false 
+launchIntoPipHostTaskId=-1 
+lastParentTaskIdBeforePip=-
+1 displayCutoutSafeInsets=R
+ect(0, 118 - 0, 0) topActiv
+ityInfo=ActivityInfo{b1d577
+1 com.nonimusic.app.MainAct
+ivity} launchCookies=[] 
+positionInParent=Point(0, 
+0) parentTaskId=-1 
+isFocused=false 
+isVisible=false 
+isVisibleRequested=false is
+TopActivityNoDisplay=false 
+isSleeping=true 
+locusId=null 
+displayAreaFeatureId=1 isTo
+pActivityTransparent=false 
+isActivityStackTransparent=
+false lastNonFullscreenBoun
+ds=Rect(316, 771 - 905, 
+1991) capturedLink=null 
+capturedLinkTimestamp=0 
+requestedVisibleTypes=-9 to
+pActivityRequestOpenInBrows
+erEducationTimestamp=0 appC
+ompatTaskInfo=AppCompatTask
+Info { topActivityInSizeCom
+pat=false eligibleForLetter
+boxEducation= false isLette
+rboxEducationEnabled= 
+false isLetterboxDoubleTapE
+nabled= false eligibleForUs
+erAspectRatioButton= false 
+topActivityBoundsLetterboxe
+d= false 
+isFromLetterboxDoubleTap= 
+false topActivityLetterboxV
+erticalPosition= -1 topActi
+vityLetterboxHorizontalPosi
+tion= -1 topActivityLetterb
+oxWidth=-1 topActivityLette
+rboxHeight=-1 topActivityAp
+pBounds=Rect(0, 0 - 1220, 
+2712) isUserFullscreenOverr
+ideEnabled=false isSystemFu
+llscreenOverrideEnabled=fal
+se hasMinAspectRatioOverrid
+e=false topActivityLetterbo
+xBounds=null cameraCompatTa
+skInfo=CameraCompatTaskInfo
+ { freeformCameraCompatMode
+=inactive}} topActivityMain
+WindowFrame=null 
+lastDisplayId=0 
+callingUid=2000}, 
+pipChange = null, 
+remoteTransition = null, 
+displayChange = null, 
+flags = 0, debugId = 11202 
+}
+adb_logs2.txt:1854:03-23 
+10:35:28.540 32163 32163 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1855:03-23 
+10:35:28.543 32163 32163 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1860:03-23 
+10:35:28.859  1709  1735 W 
+ActivityTaskManager: 
+Activity top resumed state 
+loss timeout for 
+ActivityRecord{50107324 u0 
+com.nonimusic.app/.MainActi
+vity t1364}
+adb_logs2.txt:1861:03-23 
+10:35:28.859  1709  1735 W 
+ActivityTaskManager: 
+Activity pause timeout for 
+ActivityRecord{50107324 u0 
+com.nonimusic.app/.MainActi
+vity t1364}
+adb_logs2.txt:1868:03-23 
+10:35:29.422  1709  1744 I 
+ActivityManager: Start 
+proc 18108:com.google.andro
+id.webview:sandboxed_proces
+s0:org.chromium.content.app
+.SandboxedProcessService0:0
+/u0i543 for  {com.nonimusic
+.app/org.chromium.content.a
+pp.SandboxedProcessService0
+:0}
+adb_logs2.txt:1871:03-23 
+10:35:29.705  1709  3893 I 
+AppsFilter: interaction: 
+PackageSetting{b6e39a7 
+com.nonimusic.app/10451} 
+-> PackageSetting{cec4b74 c
+om.snapchat.android/10078} 
+BLOCKED
+adb_logs2.txt:1876:03-23 
+10:35:30.011  1709  3893 I 
+ActivityManager: 
+Background started FGS: 
+Allowed [callingPackage: 
+com.nonimusic.app; 
+callingUid: 10451; 
+uidState: TPSL; uidBFSL: 
+n/a; intent: Intent { 
+xflg=0x4 cmp=com.nonimusic.
+app/.BackgroundAudioService
+ }; code:ACTIVITY_STARTER; 
+tempAllowListReason:<null>;
+ allowWiu:52; 
+targetSdkVersion:35; 
+callerTargetSdkVersion:35; 
+startForegroundCount:0; 
+bindFromPackage:null: 
+isBindService:false]
+adb_logs2.txt:1877:03-23 
+10:35:30.119  1709  5417 D 
+CoreBackPreview: 
+Window{6995f05 u0 com.nonim
+usic.app/com.nonimusic.app.
+MainActivity}: Setting 
+back callback OnBackInvoked
+CallbackInfo{mCallback=andr
+oid.window.IOnBackInvokedCa
+llback$Stub$Proxy@e39d4c8, 
+mPriority=0, mIsAnimationCa
+llback=false, 
+mOverrideBehavior=0}
+adb_logs2.txt:1878:03-23 
+10:35:30.255  1709  5417 I 
+MediaSessionStack: 
+addSession to bottom of 
+stack | record: com.nonimus
+ic.app/NoniSession/298 
+(userId=0)
+adb_logs2.txt:1885:03-23 
+10:35:30.304  1709  1739 W 
+MotoBatteryCareService: 
+uid: 10451 
+pkgName:com.nonimusic.app 
+come to foreground
+adb_logs2.txt:1893:03-23 
+10:35:31.009 16059 16059 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1894:03-23 
+10:35:31.011 16059 16059 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1901:03-23 
+10:35:41.341  1709  4027 D 
+addPss  : tracker=ProcessSt
+ate{3fbd824 
+com.nonimusic.app/10451 
+pkg=com.nonimusic.app}
+adb_logs2.txt:1912:03-23 
+10:35:44.730 17665 17665 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1913:03-23 
+10:35:44.733 17736 17736 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1914:03-23 
+10:35:44.733 17736 17736 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:1915:03-23 
+10:35:44.734 17665 17665 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:2174:03-23 
+10:36:46.141  1709  1739 D 
+addPss  : tracker=ProcessSt
+ate{3fbd824 
+com.nonimusic.app/10451 
+pkg=com.nonimusic.app}
+adb_logs2.txt:2175:03-23 
+10:36:46.141  1709  1739 D 
+addPss  : tracker=ProcessSt
+ate{ac82481 com.google.andr
+oid.webview:sandboxed_proce
+ss0:org.chromium.content.ap
+p.SandboxedProcessService0:
+0/10451 
+pkg=com.nonimusic.app}
+adb_logs2.txt:2384:03-23 
+10:37:38.913  5670  5670 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:2389:03-23 
+10:37:38.925  5670  5670 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:2514:03-23 
+10:38:15.134  1709  1739 D 
+addPss  : tracker=ProcessSt
+ate{3fbd824 
+com.nonimusic.app/10451 
+pkg=com.nonimusic.app}
+adb_logs2.txt:2515:03-23 
+10:38:15.134  1709  1739 D 
+addPss  : tracker=ProcessSt
+ate{ac82481 com.google.andr
+oid.webview:sandboxed_proce
+ss0:org.chromium.content.ap
+p.SandboxedProcessService0:
+0/10451 
+pkg=com.nonimusic.app}
+adb_logs2.txt:2540:03-23 
+10:38:15.159  1709  1739 W 
+MotoBatteryCareService: 
+uid: 10451 
+pkgName:com.nonimusic.app 
+come to foreground
+adb_logs2.txt:2570:03-23 
+10:38:15.213  1709  1732 V 
+WindowManager:         
+{WCT{RemoteToken{cf8e118 
+Task{2e2abcb #1364 
+type=standard A=10451:com.n
+onimusic.app}}} m=TO_FRONT 
+f=NONE 
+p=WCT{RemoteToken{c33d0da D
+efaultTaskDisplayArea@70755
+165(displayId=0)}} 
+pTaskId=-1 leash=Surface(na
+me=Task=1364)/@0x4dd2fa8 
+sb=Rect(0, 0 - 1220, 2712) 
+eb=Rect(0, 0 - 1220, 2712) 
+epz=Point(1220, 2712) d=0 
+taskParent=-1},
+adb_logs2.txt:2591:03-23 
+10:38:15.228  1709  1739 W 
+MotoBatteryCareService: 
+uid: 10451 
+pkgName:com.nonimusic.app 
+come to foreground
+adb_logs2.txt:2601:03-23 
+10:38:15.251 16071 16071 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:2605:03-23 
+10:38:15.255 16071 16071 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:2633:03-23 
+10:38:15.342 15083 15083 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:2634:03-23 
+10:38:15.364 15083 15083 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:2640:03-23 
+10:38:15.431  9557  9557 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:2642:03-23 
+10:38:15.433  9557  9557 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:2644:03-23 
+10:38:15.446 16084 16084 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:2645:03-23 
+10:38:15.457  1709  4539 W 
+PackageConfigPersister: 
+App-specific configuration 
+not found for packageName: 
+com.nonimusic.app and 
+userId: 0
+adb_logs2.txt:2646:03-23 
+10:38:15.464 16084 16084 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:2660:03-23 
+10:38:15.738 16813 16813 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:2661:03-23 
+10:38:15.744 16813 16813 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:2667:03-23 
+10:38:15.924  1709  2313 I 
+AppsFilter: interaction: 
+PackageSetting{b6e39a7 
+com.nonimusic.app/10451} 
+-> PackageSetting{891db81 c
+om.facebook.appmanager/1025
+5} BLOCKED
+adb_logs2.txt:2704:03-23 
+10:38:16.589  1709  1929 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:2705:03-23 
+10:38:16.590  1709  5348 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:2749:03-23 
+10:38:20.354  1709  6043 W 
+AppOps  : Noting op not 
+finished: uid 10451 pkg 
+com.nonimusic.app code 154 
+startTime of in progress 
+event=1774242496590
+adb_logs2.txt:2755:03-23 
+10:38:22.686  1709  6043 I 
+AppsFilter: interaction: 
+PackageSetting{b6e39a7 
+com.nonimusic.app/10451} 
+-> PackageSetting{c15210c c
+om.motorola.motosignature.a
+pp/10145} BLOCKED
+adb_logs2.txt:2764:03-23 
+10:38:22.875 17277 17277 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:2765:03-23 
+10:38:22.876 17277 17277 D 
+ActivityThread: Package 
+[com.nonimusic.app] 
+reported as REPLACED, but 
+missing application info. 
+Assuming REMOVED.
+adb_logs2.txt:2775:03-23 
+10:38:23.841  1709  5423 W 
+AppOps  : Noting op not 
+finished: uid 10451 pkg 
+com.nonimusic.app code 154 
+startTime of in progress 
+event=1774242496590
+adb_logs2.txt:2777:03-23 
+10:38:23.847  1709  1929 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:2778:03-23 
+10:38:23.848  1709  5348 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:2850:03-23 
+10:38:27.303  1709  5423 W 
+PackageConfigPersister: 
+App-specific configuration 
+not found for packageName: 
+com.nonimusic.app and 
+userId: 0
+adb_logs2.txt:2968:03-23 
+10:38:29.685  1709  4539 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:2969:03-23 
+10:38:29.685  1709  4539 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:2970:03-23 
+10:38:29.686  1709  5423 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:2971:03-23 
+10:38:29.686  1709  5423 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:3018:03-23 
+10:38:29.826  1709  4539 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:3019:03-23 
+10:38:29.827  1709  5423 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:3112:03-23 
+10:38:29.897  1709  6435 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:3113:03-23 
+10:38:29.897  1709  6435 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:3114:03-23 
+10:38:29.897  1709  5423 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:3115:03-23 
+10:38:29.898  1709  5423 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:3318:03-23 
+10:38:30.735  1709  5412 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:3319:03-23 
+10:38:30.736  1709  1929 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:3331:03-23 
+10:38:30.744  1709  1929 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:3332:03-23 
+10:38:30.744  1709  1929 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:3333:03-23 
+10:38:30.744  1709  5412 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:3334:03-23 
+10:38:30.744  1709  5412 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:3534:03-23 
+10:38:31.233  1709  1739 W 
+MotoBatteryCareService: 
+uid: 10451 
+pkgName:com.nonimusic.app 
+come to foreground
+adb_logs2.txt:3577:03-23 
+10:38:31.244  1709  3723 I 
+ModeMonitor: TOP: 
+Uid:10451, 
+Name:com.nonimusic.app, 
+Top:true , App is top:true
+adb_logs2.txt:3593:03-23 
+10:38:31.247 31246 31246 D 
+GameMode: 
+onStartedActivityChange: 
+componnent: ComponentInfo{c
+om.nonimusic.app/com.nonimu
+sic.app.MainActivity} 
+entered launcher screen? 
+true
+adb_logs2.txt:3789:03-23 
+10:38:31.341  1709  1732 V 
+WindowManager:         
+{WCT{RemoteToken{cf8e118 
+Task{2e2abcb #1364 
+type=standard A=10451:com.n
+onimusic.app}}} m=TO_FRONT 
+f=NONE 
+p=WCT{RemoteToken{c33d0da D
+efaultTaskDisplayArea@70755
+165(displayId=0)}} 
+pTaskId=-1 leash=Surface(na
+me=Task=1364)/@0x4dd2fa8 
+sb=Rect(0, 0 - 1220, 2712) 
+eb=Rect(0, 0 - 1220, 2712) 
+epz=Point(1220, 2712) d=0 
+taskParent=-1},
+adb_logs2.txt:3825:03-23 
+10:38:31.350  1709  5348 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:3828:03-23 
+10:38:31.351  1709  6043 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:3834:03-23 
+10:38:31.355  1709  1739 W 
+MotoBatteryCareService: 
+uid: 10451 
+pkgName:com.nonimusic.app 
+come to foreground
+adb_logs2.txt:3932:03-23 
+10:38:31.438  2066  2285 D 
+SurfaceFlinger: 
+updateWinowInfo=1, 
+setFocusedWindow 
+timestamp=481253094819747, 
+windowName=6995f05 com.noni
+music.app/com.nonimusic.app
+.MainActivity
+adb_logs2.txt:3966:03-23 
+10:38:31.466  1709  3431 I 
+ImeTracker: com.nonimusic.a
+pp:7e129b8d: onRequestHide 
+at ORIGIN_SERVER reason HID
+E_SAME_WINDOW_FOCUSED_WITHO
+UT_EDITOR fromUser false
+adb_logs2.txt:3973:03-23 
+10:38:31.473 12147 12147 I 
+GoogleInputMethodService: G
+oogleInputMethodService.onS
+tartInput():1385 onStartInp
+ut(EditorInfo{EditorInfo{pa
+ckageName=com.nonimusic.app
+, inputType=0, 
+inputTypeString=NULL, 
+enableLearning=false, 
+autoCorrection=false, 
+autoComplete=false, 
+imeOptions=12000000, 
+privateImeOptions=null, 
+actionName=UNSPECIFIED, 
+actionLabel=null, 
+initialSelStart=-1, 
+initialSelEnd=-1, 
+initialCapsMode=0, 
+label=null, fieldId=0, 
+fieldName=null, 
+extras=null, 
+hintText=null, 
+hintLocales=[]}}, false)
+adb_logs2.txt:3976:03-23 
+10:38:31.475  1709  3312 W 
+PackageConfigPersister: 
+App-specific configuration 
+not found for packageName: 
+com.nonimusic.app and 
+userId: 0
+adb_logs2.txt:4147:03-23 
+10:38:31.547 17993 17993 I 
+ImeTracker: com.nonimusic.a
+pp:7e129b8d: onCancelled 
+at 
+PHASE_CLIENT_ALREADY_HIDDEN
+adb_logs2.txt:4341:03-23 
+10:38:33.413  1709  5417 I 
+InputDispatcher: Channel 
+[Gesture Monitor] swipe-up 
+is stealing input gesture 
+for device 6 from [6995f05 
+com.nonimusic.app/com.nonim
+usic.app.MainActivity, 
+[Gesture Monitor] moto_acti
+ons_input_channel, 
+[Gesture Monitor] 
+edge_pill, [Gesture 
+Monitor] 
+sysui_input_dispatcher]
+adb_logs2.txt:4364:03-23 
+10:38:33.425  1709  3723 I 
+ModeMonitor: TOP: 
+Uid:10451, 
+Name:com.nonimusic.app, 
+Top:false , App is 
+top:false
+adb_logs2.txt:4491:03-23 
+10:38:33.495  1709  1732 V 
+WindowManager:         
+{WCT{RemoteToken{cf8e118 
+Task{2e2abcb #1364 
+type=standard A=10451:com.n
+onimusic.app}}} m=TO_BACK 
+f=NONE pTaskId=-1 leash=Sur
+face(name=Task=1364)/@0x4dd
+2fa8 sb=Rect(0, 0 - 1220, 
+2712) eb=Rect(0, 0 - 1220, 
+2712) epz=Point(1220, 
+2712) d=0 taskParent=-1},
+adb_logs2.txt:4896:03-23 
+10:38:34.291  3577  3663 D 
+WindowManagerShell: 
+onTaskAppeared: ComponentIn
+fo{com.nonimusic.app/com.no
+nimusic.app.MainActivity}, 
+state=PipTransitionState(mS
+tate=task-appeared, mInSwip
+ePipToHomeTransition=false)
+, taskId=1364
+adb_logs2.txt:4901:03-23 
+10:38:34.292  3577  3663 V 
+WindowManagerShell: 
+Transition requested 
+(#11207): android.os.Binder
+Proxy@38704ff 
+TransitionRequestInfo { 
+type = PIP, triggerTask = 
+TaskInfo{userId=0 
+taskId=1364 
+effectiveUid=10451 
+displayId=0 isRunning=true 
+baseIntent=Intent { 
+flg=0x10000000 cmp=com.noni
+music.app/.MainActivity } b
+aseActivity=ComponentInfo{c
+om.nonimusic.app/com.nonimu
+sic.app.MainActivity} topAc
+tivity=ComponentInfo{com.no
+nimusic.app/com.nonimusic.a
+pp.MainActivity} 
+origActivity=null realActiv
+ity=ComponentInfo{com.nonim
+usic.app/com.nonimusic.app.
+MainActivity} 
+numActivities=1 
+lastActiveTime=741255598 
+supportsMultiWindow=true su
+pportsGlobalFreeform=true 
+resizeMode=1 
+isResizeable=true 
+isAppLocked=false isShowDec
+orCaptionWindowRequest=fals
+e canKillAndRestart=true 
+minWidth=-1 minHeight=-1 
+defaultMinSize=200 token=WC
+T{android.window.IWindowCon
+tainerToken$Stub$Proxy@3d02
+cc} topActivityType=1 pictu
+reInPictureParams=PictureIn
+PictureParams( 
+aspectRatio=16/9 
+expandedAspectRatio=null 
+sourceRectHint=null 
+hasSetActions=false 
+hasSetCloseAction=false 
+isAutoPipEnabled=false isSe
+amlessResizeEnabled=false 
+title=null subtitle=null 
+isLaunchIntoPip=false) shou
+ldDockBigOverlays=false 
+launchIntoPipHostTaskId=-1 
+lastParentTaskIdBeforePip=-
+1 displayCutoutSafeInsets=R
+ect(0, 0 - 0, 0) topActivit
+yInfo=ActivityInfo{69c8915 
+com.nonimusic.app.MainActiv
+ity} launchCookies=[] 
+positionInParent=Point(0, 
+0) parentTaskId=-1 
+isFocused=false 
+isVisible=false 
+isVisibleRequested=true isT
+opActivityNoDisplay=false 
+isSleeping=false 
+locusId=null 
+displayAreaFeatureId=1 isTo
+pActivityTransparent=false 
+isActivityStackTransparent=
+false lastNonFullscreenBoun
+ds=Rect(316, 771 - 905, 
+1991) capturedLink=null 
+capturedLinkTimestamp=0 
+requestedVisibleTypes=-9 to
+pActivityRequestOpenInBrows
+erEducationTimestamp=0 appC
+ompatTaskInfo=AppCompatTask
+Info { topActivityInSizeCom
+pat=false eligibleForLetter
+boxEducation= false isLette
+rboxEducationEnabled= 
+false isLetterboxDoubleTapE
+nabled= false eligibleForUs
+erAspectRatioButton= false 
+topActivityBoundsLetterboxe
+d= false 
+isFromLetterboxDoubleTap= 
+false topActivityLetterboxV
+erticalPosition= -1 topActi
+vityLetterboxHorizontalPosi
+tion= -1 topActivityLetterb
+oxWidth=-1 topActivityLette
+rboxHeight=-1 topActivityAp
+pBounds=Rect(0, 0 - 1220, 
+2712) isUserFullscreenOverr
+ideEnabled=false isSystemFu
+llscreenOverrideEnabled=fal
+se hasMinAspectRatioOverrid
+e=false topActivityLetterbo
+xBounds=null cameraCompatTa
+skInfo=CameraCompatTaskInfo
+ { freeformCameraCompatMode
+=inactive}} topActivityMain
+WindowFrame=null 
+lastDisplayId=0 
+callingUid=2000}, 
+pipChange = null, 
+remoteTransition = null, 
+displayChange = null, 
+flags = 0, debugId = 11207 
+}
+adb_logs2.txt:4932:03-23 
+10:38:34.351 17993 18031 D 
+BufferQueueProducer: [com.n
+onimusic.app/com.nonimusic.
+app.MainActivity#126624(BLA
+ST Consumer)pid:17993](id:4
+64900000002,api:1,p:17993,c
+:17993) disconnect: api 1
+adb_logs2.txt:4939:03-23 
+10:38:34.358  2480  2480 I 
+TopTaskTracker: 
+onTaskMovedToFront: (moved 
+taskInfo to front) 
+taskId=1364, 
+baseIntent=Intent { 
+flg=0x10000000 cmp=com.noni
+music.app/.MainActivity }
+adb_logs2.txt:4943:03-23 
+10:38:34.363  2480  2480 I 
+TopTaskTracker: 
+onActivityPinned: packageNa
+me=com.nonimusic.app, 
+userId=0, stackId=1364
+adb_logs2.txt:4944:03-23 
+10:38:34.363  3577  3663 D 
+WindowManagerShell: 
+onActivityPinned: 
+com.nonimusic.app
+adb_logs2.txt:4954:03-23 
+10:38:34.415  1709  3312 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:4955:03-23 
+10:38:34.415  1709  3312 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:4956:03-23 
+10:38:34.416  1709  5413 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:4957:03-23 
+10:38:34.416  1709  5413 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:4971:03-23 
+10:38:34.445  1709  1732 V 
+WindowManager: Sent 
+Transition (#11207) 
+createdAt=03-23 
+10:38:34.284 via request=Tr
+ansitionRequestInfo { type 
+= PIP, triggerTask = 
+TaskInfo{userId=0 
+taskId=1364 
+effectiveUid=10451 
+displayId=0 isRunning=true 
+baseIntent=Intent { 
+flg=0x10000000 cmp=com.noni
+music.app/.MainActivity } b
+aseActivity=ComponentInfo{c
+om.nonimusic.app/com.nonimu
+sic.app.MainActivity} topAc
+tivity=ComponentInfo{com.no
+nimusic.app/com.nonimusic.a
+pp.MainActivity} 
+origActivity=null realActiv
+ity=ComponentInfo{com.nonim
+usic.app/com.nonimusic.app.
+MainActivity} 
+numActivities=1 
+lastActiveTime=741255598 
+supportsMultiWindow=true su
+pportsGlobalFreeform=true 
+resizeMode=1 
+isResizeable=true 
+isAppLocked=false isShowDec
+orCaptionWindowRequest=fals
+e canKillAndRestart=true 
+minWidth=-1 minHeight=-1 
+defaultMinSize=200 token=WC
+T{RemoteToken{cf8e118 
+Task{2e2abcb #1364 
+type=standard A=10451:com.n
+onimusic.app}}} 
+topActivityType=1 pictureIn
+PictureParams=PictureInPict
+ureParams( 
+aspectRatio=16/9 
+expandedAspectRatio=null 
+sourceRectHint=null 
+hasSetActions=false 
+hasSetCloseAction=false 
+isAutoPipEnabled=false isSe
+amlessResizeEnabled=false 
+title=null subtitle=null 
+isLaunchIntoPip=false) shou
+ldDockBigOverlays=false 
+launchIntoPipHostTaskId=-1 
+lastParentTaskIdBeforePip=-
+1 displayCutoutSafeInsets=R
+ect(0, 0 - 0, 0) topActivit
+yInfo=ActivityInfo{b1d5771 
+com.nonimusic.app.MainActiv
+ity} launchCookies=[] 
+positionInParent=Point(0, 
+0) parentTaskId=-1 
+isFocused=false 
+isVisible=false 
+isVisibleRequested=true isT
+opActivityNoDisplay=false 
+isSleeping=false 
+locusId=null 
+displayAreaFeatureId=1 isTo
+pActivityTransparent=false 
+isActivityStackTransparent=
+false lastNonFullscreenBoun
+ds=Rect(316, 771 - 905, 
+1991) capturedLink=null 
+capturedLinkTimestamp=0 
+requestedVisibleTypes=-9 to
+pActivityRequestOpenInBrows
+erEducationTimestamp=0 appC
+ompatTaskInfo=AppCompatTask
+Info { topActivityInSizeCom
+pat=false eligibleForLetter
+boxEducation= false isLette
+rboxEducationEnabled= 
+false isLetterboxDoubleTapE
+nabled= false eligibleForUs
+erAspectRatioButton= false 
+topActivityBoundsLetterboxe
+d= false 
+isFromLetterboxDoubleTap= 
+false topActivityLetterboxV
+erticalPosition= -1 topActi
+vityLetterboxHorizontalPosi
+tion= -1 topActivityLetterb
+oxWidth=-1 topActivityLette
+rboxHeight=-1 topActivityAp
+pBounds=Rect(0, 0 - 1220, 
+2712) isUserFullscreenOverr
+ideEnabled=false isSystemFu
+llscreenOverrideEnabled=fal
+se hasMinAspectRatioOverrid
+e=false topActivityLetterbo
+xBounds=null cameraCompatTa
+skInfo=CameraCompatTaskInfo
+ { freeformCameraCompatMode
+=inactive}} topActivityMain
+WindowFrame=null 
+lastDisplayId=0 
+callingUid=2000}, 
+pipChange = null, 
+remoteTransition = null, 
+displayChange = null, 
+flags = 0, debugId = 11207 
+}
+adb_logs2.txt:4972:03-23 
+10:38:34.446  1709  1732 V 
+WindowManager:     startWCT
+=WindowContainerTransaction
+ { changes= 
+{RemoteToken{cf8e118 
+Task{2e2abcb #1364 
+type=standard A=10451:com.n
+onimusic.app}}={bounds:Rect
+(497, 163 - 1175, 545),}} 
+hops= [] 
+errorCallbackToken=null 
+taskFragmentOrganizer=null 
+}
+adb_logs2.txt:4977:03-23 
+10:38:34.446  1709  1732 V 
+WindowManager:         
+{WCT{RemoteToken{cf8e118 
+Task{2e2abcb #1364 
+type=standard A=10451:com.n
+onimusic.app}}} m=TO_FRONT 
+f=TRANSLUCENT pTaskId=-1 le
+ash=Surface(name=Task=1364)
+/@0x4dd2fa8 sb=Rect(0, 0 - 
+1220, 2712) eb=Rect(497, 
+163 - 1175, 545) 
+eo=Point(497, 163) 
+epz=Point(1220, 2712) d=0 
+taskParent=-1}
+adb_logs2.txt:5016:03-23 
+10:38:34.476  2066  2066 E 
+SurfaceFlinger: Out of 
+order buffers detected for 
+RequestedLayerState{com.non
+imusic.app/com.nonimusic.ap
+p.MainActivity#126624 
+parentId=126588} 
+producedId=3 
+frameNumber=26 -> 
+producedId=3 frameNumber=2
+adb_logs2.txt:5043:03-23 
+10:38:34.497  1709  3312 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:5044:03-23 
+10:38:34.498  1709  5413 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:5084:03-23 
+10:38:34.535  2066  2066 E 
+SurfaceFlinger: Out of 
+order buffers detected for 
+RequestedLayerState{com.non
+imusic.app/com.nonimusic.ap
+p.MainActivity#126624 
+parentId=126588} 
+producedId=3 
+frameNumber=26 -> 
+producedId=3 frameNumber=3
+adb_logs2.txt:5113:03-23 
+10:38:34.560  2066  2066 E 
+SurfaceFlinger: Out of 
+order buffers detected for 
+RequestedLayerState{com.non
+imusic.app/com.nonimusic.ap
+p.MainActivity#126624 
+parentId=126588} 
+producedId=3 
+frameNumber=26 -> 
+producedId=3 frameNumber=4
+adb_logs2.txt:5156:03-23 
+10:38:34.906  3577  3663 D 
+WindowManagerShell: 
+onTaskInfoChanged: Componen
+tInfo{com.nonimusic.app/com
+.nonimusic.app.MainActivity
+}, state=PipTransitionState
+(mState=entered-pip, mInSwi
+pePipToHomeTransition=false
+) oldParams=PictureInPictur
+eParams( aspectRatio=16/9 
+expandedAspectRatio=null 
+sourceRectHint=null 
+hasSetActions=false 
+hasSetCloseAction=false 
+isAutoPipEnabled=false isSe
+amlessResizeEnabled=false 
+title=null subtitle=null 
+isLaunchIntoPip=false) newP
+arams=PictureInPictureParam
+s( aspectRatio=16/9 
+expandedAspectRatio=null 
+sourceRectHint=null 
+hasSetActions=false 
+hasSetCloseAction=false 
+isAutoPipEnabled=false isSe
+amlessResizeEnabled=false 
+title=null subtitle=null 
+isLaunchIntoPip=false)
+adb_logs2.txt:5238:03-23 
+10:38:35.589  3577  3663 D 
+WindowManagerShell: 
+onTaskInfoChanged: Componen
+tInfo{com.nonimusic.app/com
+.nonimusic.app.MainActivity
+}, state=PipTransitionState
+(mState=entered-pip, mInSwi
+pePipToHomeTransition=false
+) oldParams=PictureInPictur
+eParams( aspectRatio=16/9 
+expandedAspectRatio=null 
+sourceRectHint=null 
+hasSetActions=false 
+hasSetCloseAction=false 
+isAutoPipEnabled=false isSe
+amlessResizeEnabled=false 
+title=null subtitle=null 
+isLaunchIntoPip=false) newP
+arams=PictureInPictureParam
+s( aspectRatio=16/9 
+expandedAspectRatio=null 
+sourceRectHint=null 
+hasSetActions=false 
+hasSetCloseAction=false 
+isAutoPipEnabled=false isSe
+amlessResizeEnabled=false 
+title=null subtitle=null 
+isLaunchIntoPip=false)
+adb_logs2.txt:5254:03-23 
+10:38:35.598 17993 18031 D 
+BufferQueueProducer: [com.n
+onimusic.app/com.nonimusic.
+app.MainActivity#126624(BLA
+ST Consumer)pid:17993](id:4
+64900000003,api:1,p:17993,c
+:17993) disconnect: api 1
+adb_logs2.txt:5312:03-23 
+10:38:35.636  1709  5417 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:5313:03-23 
+10:38:35.636  1709  5417 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:5314:03-23 
+10:38:35.636  1709  5348 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:5315:03-23 
+10:38:35.636  1709  5348 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:5421:03-23 
+10:38:35.670 31246 31246 D 
+GameMode: 
+onStartedActivityChange: 
+componnent: ComponentInfo{c
+om.nonimusic.app/com.nonimu
+sic.app.MainActivity} 
+entered launcher screen? 
+false
+adb_logs2.txt:5584:03-23 
+10:38:35.802  1709  6435 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:5585:03-23 
+10:38:35.804  1709  3312 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:5598:03-23 
+10:38:35.823  1709  5417 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:5599:03-23 
+10:38:35.823  1709  5417 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:5600:03-23 
+10:38:35.824  1709  3312 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:5601:03-23 
+10:38:35.824  1709  3312 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:5887:03-23 
+10:38:36.471  1709  6435 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:5888:03-23 
+10:38:36.473  1709  6435 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:5899:03-23 
+10:38:36.487  1709  6435 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:5900:03-23 
+10:38:36.487  1709  6435 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:5901:03-23 
+10:38:36.487  1709  1728 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:5902:03-23 
+10:38:36.488  1709  1728 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:6064:03-23 
+10:38:37.132  1709  1728 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:6065:03-23 
+10:38:37.134  1709  1728 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:6080:03-23 
+10:38:37.161  1709  1728 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:6081:03-23 
+10:38:37.161  1709  1728 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:6083:03-23 
+10:38:37.161  1709  4027 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:6084:03-23 
+10:38:37.161  1709  4027 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:6207:03-23 
+10:38:37.786  1709  1728 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:6208:03-23 
+10:38:37.786  1709  5417 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:6218:03-23 
+10:38:37.804  1709  1728 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:6219:03-23 
+10:38:37.804  1709  1728 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:6221:03-23 
+10:38:37.804  1709  4027 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:6222:03-23 
+10:38:37.804  1709  4027 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:6592:03-23 
+10:38:38.439  1709  1929 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:6593:03-23 
+10:38:38.441  1709  4027 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:6607:03-23 
+10:38:38.461  1709  1929 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:6608:03-23 
+10:38:38.461  1709  1929 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:6609:03-23 
+10:38:38.461  1709  6435 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:6610:03-23 
+10:38:38.461  1709  6435 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:6759:03-23 
+10:38:39.092  1709  4027 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:6760:03-23 
+10:38:39.093  1709  1728 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:6772:03-23 
+10:38:39.109  1709  4027 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:6773:03-23 
+10:38:39.109  1709  4027 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:6774:03-23 
+10:38:39.110  1709  1728 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:6775:03-23 
+10:38:39.110  1709  1728 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:6877:03-23 
+10:38:39.369  1709  1929 I 
+MediaSessionService: tempAl
+lowlistTargetPkgIfPossible 
+callingPackage:com.android.
+systemui targetPackage:com.
+nonimusic.app reason:MediaS
+essionRecord:play [WIU] 
+[FGS]
+adb_logs2.txt:6902:03-23 
+10:38:39.755  1709  1728 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:6903:03-23 
+10:38:39.756  1709  1929 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:6912:03-23 
+10:38:39.770  1709  6435 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:6913:03-23 
+10:38:39.770  1709  6435 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:6914:03-23 
+10:38:39.771  1709  6435 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:6915:03-23 
+10:38:39.771  1709  6435 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:7034:03-23 
+10:38:40.406  1709  1728 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:7035:03-23 
+10:38:40.407  1709  1929 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:7050:03-23 
+10:38:40.426  1709  1728 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:7051:03-23 
+10:38:40.426  1709  1728 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:7054:03-23 
+10:38:40.426  1709  6435 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:7055:03-23 
+10:38:40.426  1709  6435 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:7193:03-23 
+10:38:41.061  1709  4028 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:7194:03-23 
+10:38:41.062  1709  6435 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:7205:03-23 
+10:38:41.071  1709  6435 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:7206:03-23 
+10:38:41.071  1709  6435 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:7207:03-23 
+10:38:41.072  1709  4028 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:7208:03-23 
+10:38:41.072  1709  4028 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:7332:03-23 
+10:38:41.697  1709  4027 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:7333:03-23 
+10:38:41.699  1709  1929 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:7344:03-23 
+10:38:41.706  1709  6435 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:7345:03-23 
+10:38:41.706  1709  6435 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:7346:03-23 
+10:38:41.707  1709  4027 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:7347:03-23 
+10:38:41.707  1709  4027 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:7466:03-23 
+10:38:42.327  1709  4028 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:7467:03-23 
+10:38:42.327  1709  1929 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:7481:03-23 
+10:38:42.346  1709  1929 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:7482:03-23 
+10:38:42.346  1709  1929 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:7484:03-23 
+10:38:42.347  1709  1929 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:7485:03-23 
+10:38:42.347  1709  1929 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:7592:03-23 
+10:38:42.864  1709  4027 I 
+MediaSessionService: tempAl
+lowlistTargetPkgIfPossible 
+callingPackage:com.android.
+systemui targetPackage:com.
+nonimusic.app reason:MediaS
+essionRecord:play [WIU] 
+[FGS]
+adb_logs2.txt:7598:03-23 
+10:38:42.977  1709  1929 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:7599:03-23 
+10:38:42.978  1709  4028 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:7610:03-23 
+10:38:42.993  1709  4028 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:7611:03-23 
+10:38:42.993  1709  4028 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:7612:03-23 
+10:38:42.993  1709  1929 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:7613:03-23 
+10:38:42.993  1709  1929 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:7717:03-23 
+10:38:43.299  1709  4027 I 
+MediaSessionService: tempAl
+lowlistTargetPkgIfPossible 
+callingPackage:com.android.
+systemui targetPackage:com.
+nonimusic.app reason:MediaS
+essionRecord:play [WIU] 
+[FGS]
+adb_logs2.txt:7736:03-23 
+10:38:43.522  1709  1929 I 
+MediaSessionService: tempAl
+lowlistTargetPkgIfPossible 
+callingPackage:com.android.
+systemui targetPackage:com.
+nonimusic.app reason:MediaS
+essionRecord:play [WIU] 
+[FGS]
+adb_logs2.txt:7744:03-23 
+10:38:43.628  1709  4027 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:7745:03-23 
+10:38:43.629  1709  1929 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:7754:03-23 
+10:38:43.639  1709  1929 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:7755:03-23 
+10:38:43.639  1709  1929 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:7756:03-23 
+10:38:43.639  1709  4027 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:7757:03-23 
+10:38:43.639  1709  4027 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:7855:03-23 
+10:38:43.741  1709  1929 I 
+MediaSessionService: tempAl
+lowlistTargetPkgIfPossible 
+callingPackage:com.android.
+systemui targetPackage:com.
+nonimusic.app reason:MediaS
+essionRecord:play [WIU] 
+[FGS]
+adb_logs2.txt:7866:03-23 
+10:38:43.957  1709  4027 I 
+MediaSessionService: tempAl
+lowlistTargetPkgIfPossible 
+callingPackage:com.android.
+systemui targetPackage:com.
+nonimusic.app reason:MediaS
+essionRecord:play [WIU] 
+[FGS]
+adb_logs2.txt:7881:03-23 
+10:38:44.271  1709  6435 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:7882:03-23 
+10:38:44.272  1709  4027 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:7891:03-23 
+10:38:44.282  1709  6435 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:7892:03-23 
+10:38:44.282  1709  6435 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:7893:03-23 
+10:38:44.282  1709  4027 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:7894:03-23 
+10:38:44.282  1709  4027 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:8198:03-23 
+10:38:44.725 31246 31246 D 
+GameMode: 
+onStartedActivityChange: 
+componnent: ComponentInfo{c
+om.nonimusic.app/com.nonimu
+sic.app.MainActivity} 
+entered launcher screen? 
+true
+adb_logs2.txt:8430:03-23 
+10:38:44.855  1709  1732 V 
+WindowManager:         
+{WCT{RemoteToken{cf8e118 
+Task{2e2abcb #1364 
+type=standard A=10451:com.n
+onimusic.app}}} m=TO_FRONT 
+f=TRANSLUCENT 
+p=WCT{RemoteToken{c33d0da D
+efaultTaskDisplayArea@70755
+165(displayId=0)}} 
+pTaskId=-1 leash=Surface(na
+me=Task=1364)/@0x4dd2fa8 
+sb=Rect(497, 163 - 1175, 
+545) eb=Rect(497, 163 - 
+1175, 545) eo=Point(497, 
+163) epz=Point(1220, 2712) 
+d=0 taskParent=-1},
+adb_logs2.txt:8455:03-23 
+10:38:44.860  3577  3663 D 
+WindowManagerShell: 
+onTaskInfoChanged: Componen
+tInfo{com.nonimusic.app/com
+.nonimusic.app.MainActivity
+}, state=PipTransitionState
+(mState=entered-pip, mInSwi
+pePipToHomeTransition=false
+) oldParams=PictureInPictur
+eParams( aspectRatio=16/9 
+expandedAspectRatio=null 
+sourceRectHint=null 
+hasSetActions=false 
+hasSetCloseAction=false 
+isAutoPipEnabled=false isSe
+amlessResizeEnabled=false 
+title=null subtitle=null 
+isLaunchIntoPip=false) newP
+arams=PictureInPictureParam
+s( aspectRatio=16/9 
+expandedAspectRatio=null 
+sourceRectHint=null 
+hasSetActions=false 
+hasSetCloseAction=false 
+isAutoPipEnabled=false isSe
+amlessResizeEnabled=false 
+title=null subtitle=null 
+isLaunchIntoPip=false)
+adb_logs2.txt:8515:03-23 
+10:38:44.911  1709  5348 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:8516:03-23 
+10:38:44.912  1709  5417 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:8880:03-23 
+10:38:45.321  2395 18744 D 
+MediaPlayerService: 
+onAudioDeviceUpdate 
+deviceIds: 8402
+adb_logs2.txt:9270:03-23 
+10:38:48.080  3577 19674 I 
+NotificationPlayer: About 
+to release MediaPlayer 
+piid:64575 due to 
+onCompletion
+adb_logs2.txt:9271:03-23 
+10:38:48.081  3577 19674 V 
+MediaPlayer: 
+resetDrmState:  
+mDrmInfo=null mDrmProvision
+ingThread=null mPrepareDrmI
+nProgress=false 
+mActiveDrmScheme=false
+adb_logs2.txt:9272:03-23 
+10:38:48.081  3577 19674 V 
+MediaPlayer: cleanDrmObj: 
+mDrmObj=null 
+mDrmSessionId=null
+adb_logs2.txt:9428:03-23 
+10:38:48.558  3577  3663 D 
+WindowManagerShell: 
+exitPip: ComponentInfo{com.
+nonimusic.app/com.nonimusic
+.app.MainActivity}, state=P
+ipTransitionState(mState=en
+tered-pip, mInSwipePipToHom
+eTransition=false)
+adb_logs2.txt:9429:03-23 
+10:38:48.558  3577  3663 D 
+WindowManagerShell: 
+exitPip: ComponentInfo{com.
+nonimusic.app/com.nonimusic
+.app.MainActivity}, 
+dest=Rect(0, 0 - 1220, 
+2712)
+adb_logs2.txt:9431:03-23 
+10:38:48.561  1709  4028 W 
+WindowManager: 
+applyWithNextDraw with 
+mSyncState=1, 
+Window{6995f05 u0 com.nonim
+usic.app/com.nonimusic.app.
+MainActivity}, com.android.
+server.wm.Task.setMainWindo
+wSizeChangeTransaction:5285
+ com.android.server.wm.Task
+.setMainWindowSizeChangeTra
+nsaction:5267 com.android.s
+erver.wm.WindowOrganizerCon
+troller.applyTaskChanges:91
+0 com.android.server.wm.Win
+dowOrganizerController.appl
+yWindowContainerChange:2319
+ com.android.server.wm.Wind
+owOrganizerController.apply
+Transaction:738 com.android
+.server.wm.WindowOrganizerC
+ontroller.applyTransaction:
+619 com.android.server.wm.W
+indowOrganizerController.la
+mbda$startTransition$3:381 
+com.android.server.wm.Windo
+wOrganizerController.$r8$la
+mbda$PHnU0rj5Bcvaq0dL-Wi7kO
+Jt8bo:0 
+adb_logs2.txt:9450:03-23 
+10:38:48.580  3577  3663 D 
+WindowManagerShell: 
+onTaskInfoChanged: Componen
+tInfo{com.nonimusic.app/com
+.nonimusic.app.MainActivity
+}, state=PipTransitionState
+(mState=exiting-pip, mInSwi
+pePipToHomeTransition=false
+) oldParams=PictureInPictur
+eParams( aspectRatio=16/9 
+expandedAspectRatio=null 
+sourceRectHint=null 
+hasSetActions=false 
+hasSetCloseAction=false 
+isAutoPipEnabled=false isSe
+amlessResizeEnabled=false 
+title=null subtitle=null 
+isLaunchIntoPip=false) newP
+arams=PictureInPictureParam
+s( aspectRatio=16/9 
+expandedAspectRatio=null 
+sourceRectHint=null 
+hasSetActions=false 
+hasSetCloseAction=false 
+isAutoPipEnabled=false isSe
+amlessResizeEnabled=false 
+title=null subtitle=null 
+isLaunchIntoPip=false)
+adb_logs2.txt:9460:03-23 
+10:38:48.591 17993 18031 D 
+BufferQueueProducer: [com.n
+onimusic.app/com.nonimusic.
+app.MainActivity#126654(BLA
+ST Consumer)pid:17993](id:4
+64900000004,api:1,p:17993,c
+:17993) disconnect: api 1
+adb_logs2.txt:9471:03-23 
+10:38:48.596  2066  2285 D 
+SurfaceFlinger: 
+updateWinowInfo=1, 
+setFocusedWindow 
+timestamp=481270378878178, 
+windowName=6995f05 com.noni
+music.app/com.nonimusic.app
+.MainActivity
+adb_logs2.txt:9477:03-23 
+10:38:48.621  1709  1732 V 
+WindowManager:     startWCT
+=WindowContainerTransaction
+ { changes= 
+{RemoteToken{cf8e118 
+Task{2e2abcb #1364 
+type=standard A=10451:com.n
+onimusic.app}}={bounds:Rect
+(0, 0 - 1220, 2712),hasBoun
+dsTransaction,}} hops= [] 
+errorCallbackToken=null 
+taskFragmentOrganizer=null 
+}
+adb_logs2.txt:9479:03-23 
+10:38:48.621  1709  1732 V 
+WindowManager:         
+{WCT{RemoteToken{cf8e118 
+Task{2e2abcb #1364 
+type=standard A=10451:com.n
+onimusic.app}}} m=CHANGE 
+f=TRANSLUCENT pTaskId=-1 le
+ash=Surface(name=Task=1364)
+/@0x4dd2fa8 sb=Rect(497, 
+163 - 1175, 545) 
+eb=Rect(0, 0 - 1220, 2712) 
+epz=Point(1220, 2712) d=0 
+taskParent=-1}
+adb_logs2.txt:9490:03-23 
+10:38:48.632  1709  3431 I 
+ImeTracker: com.nonimusic.a
+pp:f85c2168: onRequestHide 
+at ORIGIN_SERVER reason 
+HIDE_UNSPECIFIED_WINDOW 
+fromUser false
+adb_logs2.txt:9492:03-23 
+10:38:48.633 17993 17993 I 
+ImeTracker: com.nonimusic.a
+pp:f85c2168: onCancelled 
+at 
+PHASE_CLIENT_ALREADY_HIDDEN
+adb_logs2.txt:9495:03-23 
+10:38:48.636 12147 12147 I 
+GoogleInputMethodService: G
+oogleInputMethodService.onS
+tartInput():1385 onStartInp
+ut(EditorInfo{EditorInfo{pa
+ckageName=com.nonimusic.app
+, inputType=0, 
+inputTypeString=NULL, 
+enableLearning=false, 
+autoCorrection=false, 
+autoComplete=false, 
+imeOptions=12000000, 
+privateImeOptions=null, 
+actionName=UNSPECIFIED, 
+actionLabel=null, 
+initialSelStart=-1, 
+initialSelEnd=-1, 
+initialCapsMode=0, 
+label=null, fieldId=0, 
+fieldName=null, 
+extras=null, 
+hintText=null, 
+hintLocales=[]}}, false)
+adb_logs2.txt:9499:03-23 
+10:38:48.638  1709  4028 W 
+PackageConfigPersister: 
+App-specific configuration 
+not found for packageName: 
+com.nonimusic.app and 
+userId: 0
+adb_logs2.txt:9524:03-23 
+10:38:49.057  3577  3663 D 
+WindowManagerShell: 
+onExitPipFinished: Componen
+tInfo{com.nonimusic.app/com
+.nonimusic.app.MainActivity
+}, state=PipTransitionState
+(mState=exiting-pip, mInSwi
+pePipToHomeTransition=false
+) leash=Surface(name=Task=1
+364)/@0x8c53b5
+adb_logs2.txt:9550:03-23 
+10:38:49.119  1709  1732 V 
+WindowManager:     startWCT
+=WindowContainerTransaction
+ { changes= 
+{RemoteToken{cf8e118 
+Task{2e2abcb #1364 
+type=standard A=10451:com.n
+onimusic.app}}={bounds:Rect
+(0, 0 - 0, 0),}} hops= [] 
+errorCallbackToken=null 
+taskFragmentOrganizer=null 
+}
+adb_logs2.txt:9552:03-23 
+10:38:49.119  1709  1732 V 
+WindowManager:         
+{WCT{RemoteToken{cf8e118 
+Task{2e2abcb #1364 
+type=standard A=10451:com.n
+onimusic.app}}} m=CHANGE 
+f=MOVE_TO_TOP pTaskId=-1 le
+ash=Surface(name=Task=1364)
+/@0x4dd2fa8 sb=Rect(0, 0 - 
+1220, 2712) eb=Rect(0, 0 - 
+1220, 2712) 
+epz=Point(1220, 2712) d=0 
+taskParent=-1},
+adb_logs2.txt:9560:03-23 
+10:38:49.126  1709  1739 W 
+MotoBatteryCareService: 
+uid: 10451 
+pkgName:com.nonimusic.app 
+come to foreground
+adb_logs2.txt:9562:03-23 
+10:38:49.130  3577  3663 D 
+WindowManagerShell: 
+onTaskVanished: ComponentIn
+fo{com.nonimusic.app/com.no
+nimusic.app.MainActivity}, 
+state=PipTransitionState(mS
+tate=undefined, mInSwipePip
+ToHomeTransition=false)
+adb_logs2.txt:9576:03-23 
+10:38:49.131  1709  1739 W 
+MotoBatteryCareService: 
+uid: 10451 
+pkgName:com.nonimusic.app 
+come to foreground
+adb_logs2.txt:9583:03-23 
+10:38:49.135  1709  3723 I 
+ModeMonitor: TOP: 
+Uid:10451, 
+Name:com.nonimusic.app, 
+Top:true , App is top:true
+adb_logs2.txt:10109:03-23 
+10:38:57.135  1709  4539 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:10110:03-23 
+10:38:57.135  1709  4539 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:10111:03-23 
+10:38:57.136  1709  4028 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:10112:03-23 
+10:38:57.136  1709  4028 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:10363:03-23 
+10:39:00.851  1709  4539 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:10364:03-23 
+10:39:00.851  1709  4539 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:10365:03-23 
+10:39:00.852  1709  3312 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:10366:03-23 
+10:39:00.852  1709  3312 E 
+AppOps  : attributionTag  
+not declared in manifest 
+of com.nonimusic.app
+adb_logs2.txt:10367:03-23 
+10:39:00.853  1709  4539 I 
+MediaFocusControl: 
+abandonAudioFocus() from 
+uid/pid 10451/17993 clientI
+d=android.media.AudioManage
+r@8faf4dborg.chromium.conte
+nt.browser.AudioFocusDelega
+te@5d72b78 callingPack=com.
+nonimusic.app
+adb_logs2.txt:10768:03-23 
+10:39:03.270 17993 18031 D 
+BufferQueueProducer: [com.n
+onimusic.app/com.nonimusic.
+app.MainActivity#126654(BLA
+ST Consumer)pid:17993](id:4
+64900000004,api:1,p:17993,c
+:17993) disconnect: api 1
+adb_logs2.txt:10866:03-23 
+10:39:03.308 31246 31246 D 
+GameMode: 
+onStartedActivityChange: 
+componnent: ComponentInfo{c
+om.nonimusic.app/com.nonimu
+sic.app.MainActivity} 
+entered launcher screen? 
+false
+adb_logs2.txt:10920:03-23 
+10:39:03.338  1709  3723 I 
+ModeMonitor: TOP: 
+Uid:10451, 
+Name:com.nonimusic.app, 
+Top:false , App is 
+top:false
+adb_logs2.txt:11555:03-23 
+10:39:16.665  1709  1739 D 
+addPss  : tracker=ProcessSt
+ate{3fbd824 
+com.nonimusic.app/10451 
+pkg=com.nonimusic.app}
+
+
