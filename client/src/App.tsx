@@ -178,7 +178,7 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
   const [syncTime, setSyncTime] = useState(0);
   const [discoverQuery, setDiscoverQuery] = useState('');
   const [showFullPlayer, setShowFullPlayer] = useState(false);
-  const [webPlaybackMode, setWebPlaybackMode] = useState<'direct' | 'youtube'>('direct');
+  const [webPlaybackMode, setWebPlaybackMode] = useState<'direct' | 'youtube'>(isNative ? 'direct' : 'youtube');
 
   const [showPrefModal, setShowPrefModal] = useState(false);
   const [preferences, setPreferences] = useState<string[]>([]);
@@ -481,7 +481,7 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
   
   // --- AUDIO STREAM PLAYBACK (Web: HTML audio | Native: NativeAudio plugin) ---
   useEffect(() => {
-if (state.currentSong) {
+    if (state.currentSong) {
       if (isNative) {
         fetch(`${BACKEND_URL}/api/stream-url/${state.currentSong.id}`)
           .then(res => res.json())
@@ -500,38 +500,22 @@ if (state.currentSong) {
           })
           .catch(() => {});
       } else {
-        fetch(`${BACKEND_URL}/api/stream-url/${state.currentSong.id}`)
-          .then(res => {
-            if (!res.ok) throw new Error('direct stream unavailable');
-            return res.json();
-          })
-          .then(data => {
-            if (!data.url || !audioRef.current) throw new Error('missing direct stream');
-            setWebPlaybackMode('direct');
-            audioRef.current.pause();
-            audioRef.current.src = data.url;
-            audioRef.current.load();
-            audioRef.current.currentTime = state.currentTime > 0 ? state.currentTime : 0;
+        setWebPlaybackMode('youtube');
+        if (audioRef.current) {
+          audioRef.current.pause();
+          audioRef.current.src = '';
+        }
+        const player = youtubePlayerRef.current;
+        if (player?.loadVideoById) {
+          try {
+            player.loadVideoById({ videoId: state.currentSong.id, startSeconds: state.currentTime > 0 ? state.currentTime : 0 });
             if (state.isPlaying && !localPauseRef.current) {
-              audioRef.current.play().catch(() => {});
+              player.playVideo();
+            } else {
+              player.pauseVideo();
             }
-          })
-          .catch(() => {
-            setWebPlaybackMode('youtube');
-            if (audioRef.current) {
-              audioRef.current.pause();
-              audioRef.current.src = '';
-            }
-            const player = youtubePlayerRef.current;
-            if (player?.loadVideoById) {
-              try {
-                player.loadVideoById({ videoId: state.currentSong!.id, startSeconds: state.currentTime > 0 ? state.currentTime : 0 });
-                if (!(state.isPlaying && !localPauseRef.current)) {
-                  player.pauseVideo();
-                }
-              } catch (e) {}
-            }
-          });
+          } catch (e) {}
+        }
       }
     } else {
       if (isNative) { try { NativeAudio.pause(); } catch(e){} }
@@ -571,9 +555,13 @@ if (state.currentSong) {
       <audio 
         ref={audioRef}
         onEnded={() => socket.emit('auto_skip')}
-        onError={() => socket.emit('error_skip')}
+        onError={() => {
+          if (isNative || webPlaybackMode === 'direct') {
+            socket.emit('error_skip');
+          }
+        }}
         onTimeUpdate={() => {
-          if (!isNative && audioRef.current) {
+          if (!isNative && webPlaybackMode === 'direct' && audioRef.current) {
             setSyncTime(Math.floor(audioRef.current.currentTime));
           }
         }}
