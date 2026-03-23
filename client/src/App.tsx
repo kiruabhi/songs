@@ -104,7 +104,7 @@ function App() {
   return (
     <div className="app-container">
       {!inRoom ? (
-        <Dashboard user={user} onLogout={logout} onCreate={createRoom} onJoin={(id) => { window.history.pushState({}, '', `/${id}`); joinRoom(id); }} />
+        <Dashboard user={user} onLogout={logout} onCreate={createRoom} onJoin={(id: string) => { window.history.pushState({}, '', `/${id}`); joinRoom(id); }} />
       ) : (
         <Room roomId={roomId} socket={socket!} user={user} token={token} onLogout={logout} />
       )}
