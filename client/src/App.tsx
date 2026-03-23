@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { Music, Plus, Play, Pause, SkipForward, SkipBack, Copy, Search, Check, Disc, Heart, Repeat, LogOut, Users, Compass, Settings, X } from 'lucide-react';
-import YouTube from 'react-youtube';
 import './index.css';
+import { registerPlugin } from '@capacitor/core';
+const NativeAudio = registerPlugin('NativeAudio');
+
 
 const BACKEND_URL = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '');
 
@@ -195,7 +197,8 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
   const [state, setState] = useState<RoomState>({ hostId: 0, activeUsers: [], queue: [], history: [], currentSong: null, isPlaying: false, isLooping: false, currentTime: 0 });
   const [activeTab, setActiveTab] = useState<'room' | 'liked' | 'admin' | 'recommend'>('room');
   const [likedSongs, setLikedSongs] = useState<Song[]>([]);
-  const playerRef = useRef<any>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const [loadingAudio, setLoadingAudio] = useState(false);
   const [copied, setCopied] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Song[]>([]);
@@ -304,44 +307,56 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
   useEffect(() => {
     socket.on('room_state', (newState: RoomState) => {
       setState(prevState => {
-        if (playerRef.current) {
-          if (newState.currentSong?.id === prevState.currentSong?.id) {
-            const currentPlayerTime = playerRef.current.getCurrentTime() || 0;
-            if (Math.abs(currentPlayerTime - newState.currentTime) > 2) {
-              playerRef.current.seekTo(newState.currentTime);
-            }
-            if (newState.isPlaying && !localPauseRef.current) {
-              playerRef.current.playVideo();
+        if (newState.currentSong?.id === prevState.currentSong?.id) {
+           if (Math.abs(syncTime - newState.currentTime) > 2) {
+              setSyncTime(newState.currentTime);
+              try { NativeAudio.seek({ time: newState.currentTime }); } catch(e){}
+           }
+        }
+        return newState;
+      });
+    });
             } else if (!newState.isPlaying) {
-              playerRef.current.pauseVideo();
+              audioRef.current.pause();
             }
           }
         }
         return newState;
       });
     });
+    });
 
     socket.on('sync_player', ({ isPlaying, currentTime }: { isPlaying: boolean, currentTime: number }) => {
-      if (playerRef.current && !localPauseRef.current) {
-        const pTime = playerRef.current.getCurrentTime() || 0;
-        if (Math.abs(pTime - currentTime) > 2) {
-          playerRef.current.seekTo(currentTime);
+      if (!localPauseRef.current) {
+        if (Math.abs(syncTime - currentTime) > 2) {
+          setSyncTime(currentTime);
+          try { NativeAudio.seek({ time: currentTime }); } catch(e){}
         }
-        if (isPlaying) playerRef.current.playVideo();
-        else playerRef.current.pauseVideo();
+      }
+      setState(s => ({ ...s, isPlaying, currentTime }));
+    });
+        else audioRef.current.pause();
       }
       setState(s => ({ ...s, isPlaying, currentTime }));
     });
 
     const interval = setInterval(() => {
-      if (playerRef.current && playerRef.current.getPlayerState() === 1) { // 1 = playing
-        setSyncTime(playerRef.current.getCurrentTime() || 0);
+      // Fake the sync time locally since NativeAudio doesn't transmit events to JS smoothly without overhead
+      if (state.isPlaying && !localPauseRef.current) {
+         setSyncTime(prev => {
+            const next = prev + 1;
+            if (state.currentSong && next >= state.currentSong.seconds) {
+               socket.emit('auto_skip');
+               return 0;
+            }
+            return next;
+         });
       }
     }, 1000);
 
     const hostInterval = setInterval(() => {
-      if (playerRef.current && playerRef.current.getPlayerState() === 1) {
-        socket.emit('host_sync', { currentTime: playerRef.current.getCurrentTime() || 0 });
+      if (state.isPlaying && !localPauseRef.current) {
+        socket.emit('host_sync', { currentTime: syncTime });
       }
     }, 4000);
 
@@ -350,7 +365,7 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
       socket.off('sync_player');
       clearInterval(interval);
       clearInterval(hostInterval);
-      if (playerRef.current) playerRef.current.pauseVideo();
+      if (audioRef.current) audioRef.current.pause();
     };
   }, [socket]);
 
@@ -390,19 +405,10 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
   const togglePlay = () => {
     const nextState = !state.isPlaying;
     if (isHostOrAdmin) {
-      const cTime = playerRef.current ? playerRef.current.getCurrentTime() : 0;
-      socket.emit('play_pause', { isPlaying: nextState, currentTime: cTime });
+      socket.emit('play_pause', { isPlaying: nextState, currentTime: syncTime });
     } else {
       localPauseRef.current = !localPauseRef.current;
       setIsLocallyPaused(localPauseRef.current);
-      if (localPauseRef.current) {
-        if (playerRef.current) playerRef.current.pauseVideo();
-      } else {
-        if (state.isPlaying && playerRef.current) {
-          playerRef.current.seekTo(syncTime);
-          playerRef.current.playVideo();
-        }
-      }
     }
   };
 
@@ -430,32 +436,47 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
   const seek = (e: React.ChangeEvent<HTMLInputElement>) => {
     const time = Number(e.target.value);
     setSyncTime(time);
-    if (playerRef.current) playerRef.current.seekTo(time);
+    try { NativeAudio.seek({ time }); } catch(err){}
     socket.emit('seek', { currentTime: time });
   };
 
   const isCurrentLiked = state.currentSong && likedSongs.some(s => s.id === state.currentSong!.id);
 
-  const silentAudioRef = useRef<HTMLAudioElement | null>(null);
-
+  
+  
+  // --- DIRECT NATIVE AUDIO STREAM FETCHER ---
   useEffect(() => {
-    // Tiny Base64 silent WAV file allows mobile browsers (Safari/Chrome Android) to keep WebAudio running in background
-    const audio = new window.Audio("data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA");
-    audio.loop = true;
-    silentAudioRef.current = audio;
-    return () => {
-      audio.pause();
-      audio.src = '';
-    };
-  }, []);
-
-  useEffect(() => {
-    if (state.isPlaying && !localPauseRef.current) {
-      silentAudioRef.current?.play().catch(() => {});
+    if (state.currentSong) {
+      setLoadingAudio(true);
+      fetch(`${BACKEND_URL}/api/stream-url/${state.currentSong.id}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.url) {
+            if (state.isPlaying && !localPauseRef.current) {
+                try {
+                    NativeAudio.playStream({ url: data.url, title: state.currentSong?.title, artist: state.currentSong?.author });
+                    if (state.currentTime > 0) NativeAudio.seek({ time: state.currentTime });
+                } catch(e) {}
+            }
+          }
+          setLoadingAudio(false);
+        })
+        .catch(() => setLoadingAudio(false));
     } else {
-      silentAudioRef.current?.pause();
+      try { NativeAudio.pause(); } catch(e){}
     }
+  }, [state.currentSong?.id]);
+
+  // Handle Play/Pause synchronization for NativeAudio
+  useEffect(() => {
+     if (state.isPlaying && !localPauseRef.current) {
+         try { NativeAudio.resume(); } catch(e){}
+     } else {
+         try { NativeAudio.pause(); } catch(e){}
+     }
   }, [state.isPlaying, isLocallyPaused]);
+
+
 
   useEffect(() => {
     if (state.currentSong && 'mediaSession' in navigator) {
@@ -474,46 +495,14 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
-      {state.currentSong && (
-        <div style={{ position: 'absolute', left: '-9999px' }}>
-          <YouTube 
-            videoId={state.currentSong.id} 
-            opts={{ height: '1', width: '1', playerVars: { autoplay: 1, playsinline: 1 } }}
-            onReady={(e) => {
-              playerRef.current = e.target;
-              if (state.isPlaying && !localPauseRef.current) {
-                e.target.playVideo();
-              }
-              if (state.currentTime > 0) {
-                e.target.seekTo(state.currentTime);
-              }
-            }}
-            onEnd={() => socket.emit('auto_skip')}
-            onError={() => socket.emit('error_skip')}
-            onStateChange={(e) => {
-              if (e.data === 1) { // 1 = playing
-                const playerState = playerRef.current;
-                if (!state.isPlaying && playerState) {
-                  // YouTube autoplayed when it wasn't supposed to (e.g. host paused but song changed)
-                  if (!isHostOrAdmin) {
-                     // Pause it immediately if the room says it should be paused
-                     playerState.pauseVideo();
-                  }
-                }
-              } else if (e.data === 2) { // 2 = paused
-                // THE ULTIMATE BACKGROUND HACK: 
-                // If YouTube's iframe API pauses itself because the phone screen locked,
-                // but the Room is actively "Playing", we forcefully resurrect it!
-                if (state.isPlaying && !localPauseRef.current && playerRef.current) {
-                   setTimeout(() => {
-                      try { playerRef.current.playVideo(); } catch(err){}
-                   }, 100);
-                }
-              }
-            }}
-          />
-        </div>
-      )}
+      
+      <audio 
+        ref={audioRef}
+        onEnded={() => socket.emit('auto_skip')}
+        onError={() => socket.emit('error_skip')}
+        style={{ display: 'none' }}
+      />
+
       {/* HEADER */}
       <header className="glass" style={{ margin: '20px', padding: '15px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderRadius: '12px', flexWrap: 'wrap', gap: '10px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>

@@ -78,9 +78,32 @@ const emitRoomState = (roomId) => {
   io.to(roomId).emit("room_state", room);
 };
 
+const playdl = require("play-dl");
+
 // --- API ROUTES ---
 app.get("/", (req, res) => {
   res.send("<h1>Noni Jam API is Online 🎵</h1><p>The server is running perfectly.</p>");
+});
+
+// Resolve Direct Native Audio Stream
+app.get("/api/stream-url/:videoId", async (req, res) => {
+  try {
+    const videoId = req.params.videoId;
+    if (!videoId) return res.status(400).json({ error: "Missing videoId" });
+
+    const info = await playdl.video_info(videoId);
+    // Prefer pure audio streams (WebM Opus / M4A)
+    const audioFormats = info.format.filter(f => !f.hasVideo && f.hasAudio).sort((a,b) => (b.bitrate || 0) - (a.bitrate || 0));
+    
+    if (audioFormats.length > 0) {
+      res.json({ url: audioFormats[0].url });
+    } else {
+      res.status(404).json({ error: "No purely audio streams found." });
+    }
+  } catch (err) {
+    console.error("Stream resolution error:", err);
+    res.status(500).json({ error: "Failed to resolve stream URL" });
+  }
 });
 
 // Search YouTube

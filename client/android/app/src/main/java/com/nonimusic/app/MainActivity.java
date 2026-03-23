@@ -14,6 +14,9 @@ public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        
+        // Expose Native Application Logic hardware hooks 
+        registerPlugin(NativeAudioPlugin.class);
 
         // Required for Android 13+ Notification Bar Player 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
