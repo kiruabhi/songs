@@ -50,10 +50,24 @@ public class MainActivity extends BridgeActivity {
     @Override
     public void onPause() {
         super.onPause();
-        // FORCE the WebView to stay entirely awake! Capacitor aggressively pauses it here.
+        // FORCE the WebView to stay entirely awake! 
         if (this.bridge != null && this.bridge.getWebView() != null) {
             this.bridge.getWebView().onResume();
             this.bridge.getWebView().resumeTimers();
+        }
+    }
+
+    @Override
+    protected void onUserLeaveHint() {
+        super.onUserLeaveHint();
+        // THE ONLY WAY to keep cross-origin iframes alive in Android is PiP
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            try {
+                android.app.PictureInPictureParams params = new android.app.PictureInPictureParams.Builder()
+                        .setAspectRatio(new android.util.Rational(16, 9))
+                        .build();
+                enterPictureInPictureMode(params);
+            } catch (Exception e) {}
         }
     }
 }

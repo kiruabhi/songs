@@ -500,6 +500,15 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
                      playerState.pauseVideo();
                   }
                 }
+              } else if (e.data === 2) { // 2 = paused
+                // THE ULTIMATE BACKGROUND HACK: 
+                // If YouTube's iframe API pauses itself because the phone screen locked,
+                // but the Room is actively "Playing", we forcefully resurrect it!
+                if (state.isPlaying && !localPauseRef.current && playerRef.current) {
+                   setTimeout(() => {
+                      try { playerRef.current.playVideo(); } catch(err){}
+                   }, 100);
+                }
               }
             }}
           />
