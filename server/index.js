@@ -113,7 +113,7 @@ app.get("/api/search", async (req, res) => {
     if (!query) return res.status(400).json({ error: "No query provided" });
 
     const r = await ytSearch(query);
-    const videos = r.videos.slice(0, 15).map(v => ({
+    const videos = r.videos.slice(0, 60).map(v => ({
       id: v.videoId,
       title: v.title,
       thumbnail: v.thumbnail,
@@ -271,7 +271,7 @@ app.get("/api/recommendations", async (req, res) => {
     }
 
     const output = await ytSearch(query);
-    const videos = output.videos.slice(0, 15).map(v => ({
+    const videos = output.videos.slice(0, 60).map(v => ({
       id: v.videoId,
       title: v.title,
       thumbnail: v.thumbnail,
