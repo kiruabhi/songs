@@ -1,6 +1,7 @@
 import Dashboard from './Dashboard';
 import React, { useState, useEffect, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
+import YouTube from 'react-youtube';
 import { Music, Plus, Play, Pause, SkipForward, SkipBack, Copy, Search, Check, Disc, Heart, Repeat, LogOut, Users, Compass, Settings, X } from 'lucide-react';
 import './index.css';
 import './dashboard.css';
@@ -165,6 +166,7 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
   const [activeTab, setActiveTab] = useState<'room' | 'liked' | 'admin' | 'recommend'>('room');
   const [likedSongs, setLikedSongs] = useState<Song[]>([]);
   const audioRef = useRef<HTMLAudioElement>(null);
+  const youtubePlayerRef = useRef<any>(null);
 
   const [copied, setCopied] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -176,6 +178,7 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
   const [syncTime, setSyncTime] = useState(0);
   const [discoverQuery, setDiscoverQuery] = useState('');
   const [showFullPlayer, setShowFullPlayer] = useState(false);
+  const [webPlaybackMode, setWebPlaybackMode] = useState<'direct' | 'youtube'>('direct');
 
   const [showPrefModal, setShowPrefModal] = useState(false);
   const [preferences, setPreferences] = useState<string[]>([]);
@@ -192,6 +195,7 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
   const [showParticipants, setShowParticipants] = useState(false);
 
   const isHostOrAdmin = state.hostId === user.id || user.role === 'admin';
+  const isYoutubeFallback = !isNative && webPlaybackMode === 'youtube';
 
   useEffect(() => {
     stateRef.current = state;
@@ -200,6 +204,42 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
   useEffect(() => {
     syncTimeRef.current = syncTime;
   }, [syncTime]);
+
+  const seekWebPlayback = (time: number) => {
+    if (isNative) {
+      try { NativeAudio.seek({ time }); } catch (err) {}
+      return;
+    }
+
+    if (isYoutubeFallback && youtubePlayerRef.current?.seekTo) {
+      try { youtubePlayerRef.current.seekTo(time, true); } catch (err) {}
+      return;
+    }
+
+    if (audioRef.current) {
+      audioRef.current.currentTime = time;
+    }
+  };
+
+  const syncPlaybackState = (playing: boolean) => {
+    if (isNative) {
+      if (playing) { try { NativeAudio.resume(); } catch(e){} }
+      else { try { NativeAudio.pause(); } catch(e){} }
+      return;
+    }
+
+    if (isYoutubeFallback && youtubePlayerRef.current) {
+      try {
+        if (playing) youtubePlayerRef.current.playVideo();
+        else youtubePlayerRef.current.pauseVideo();
+      } catch (err) {}
+      return;
+    }
+
+    if (!audioRef.current || !audioRef.current.src) return;
+    if (playing) { audioRef.current.play().catch(() => {}); }
+    else { audioRef.current.pause(); }
+  };
 
   useEffect(() => {
     // Fetch Liked Songs securely
@@ -288,11 +328,7 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
         if (newState.currentSong?.id === prevState.currentSong?.id) {
            if (Math.abs(syncTimeRef.current - newState.currentTime) > 2) {
               setSyncTime(newState.currentTime);
-              if (isNative) {
-                try { NativeAudio.seek({ time: newState.currentTime }); } catch(e){}
-              } else if (audioRef.current) {
-                audioRef.current.currentTime = newState.currentTime;
-              }
+              seekWebPlayback(newState.currentTime);
            }
         }
         return newState;
@@ -304,11 +340,7 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
       if (!localPauseRef.current) {
         if (Math.abs(syncTimeRef.current - currentTime) > 2) {
           setSyncTime(currentTime);
-          if (isNative) {
-            try { NativeAudio.seek({ time: currentTime }); } catch(e){}
-          } else if (audioRef.current) {
-            audioRef.current.currentTime = currentTime;
-          }
+          seekWebPlayback(currentTime);
         }
       }
       setState(s => ({ ...s, isPlaying, currentTime }));
@@ -439,8 +471,7 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
   const seek = (e: React.ChangeEvent<HTMLInputElement>) => {
     const time = Number(e.target.value);
     setSyncTime(time);
-    if (isNative) { try { NativeAudio.seek({ time }); } catch(err){} }
-    else if (audioRef.current) { audioRef.current.currentTime = time; }
+    seekWebPlayback(time);
     socket.emit('seek', { currentTime: time });
   };
 
@@ -450,12 +481,12 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
   
   // --- AUDIO STREAM PLAYBACK (Web: HTML audio | Native: NativeAudio plugin) ---
   useEffect(() => {
-    if (state.currentSong) {
-      fetch(`${BACKEND_URL}/api/stream-url/${state.currentSong.id}`)
-        .then(res => res.json())
-        .then(data => {
-          if (data.url) {
-            if (isNative) {
+if (state.currentSong) {
+      if (isNative) {
+        fetch(`${BACKEND_URL}/api/stream-url/${state.currentSong.id}`)
+          .then(res => res.json())
+          .then(data => {
+            if (data.url) {
               try {
                 NativeAudio.playStream({
                   url: data.url,
@@ -463,39 +494,59 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
                   artist: state.currentSong?.author,
                   headers: data.headers || {}
                 });
-                if (state.currentTime > 0) NativeAudio.seek({ time: state.currentTime });
+                NativeAudio.seek({ time: state.currentTime > 0 ? state.currentTime : 0 });
               } catch(e) {}
-            } else {
-              // Web browser — drive the HTML <audio> element directly
-              if (audioRef.current) {
-                audioRef.current.src = data.url;
-                audioRef.current.currentTime = state.currentTime > 0 ? state.currentTime : 0;
-                if (state.isPlaying && !localPauseRef.current) {
-                  audioRef.current.play().catch(() => {});
-                }
-              }
             }
-          }
-        })
-        .catch(() => {});
+          })
+          .catch(() => {});
+      } else {
+        fetch(`${BACKEND_URL}/api/stream-url/${state.currentSong.id}`)
+          .then(res => {
+            if (!res.ok) throw new Error('direct stream unavailable');
+            return res.json();
+          })
+          .then(data => {
+            if (!data.url || !audioRef.current) throw new Error('missing direct stream');
+            setWebPlaybackMode('direct');
+            audioRef.current.pause();
+            audioRef.current.src = data.url;
+            audioRef.current.load();
+            audioRef.current.currentTime = state.currentTime > 0 ? state.currentTime : 0;
+            if (state.isPlaying && !localPauseRef.current) {
+              audioRef.current.play().catch(() => {});
+            }
+          })
+          .catch(() => {
+            setWebPlaybackMode('youtube');
+            if (audioRef.current) {
+              audioRef.current.pause();
+              audioRef.current.src = '';
+            }
+            const player = youtubePlayerRef.current;
+            if (player?.loadVideoById) {
+              try {
+                player.loadVideoById({ videoId: state.currentSong!.id, startSeconds: state.currentTime > 0 ? state.currentTime : 0 });
+                if (!(state.isPlaying && !localPauseRef.current)) {
+                  player.pauseVideo();
+                }
+              } catch (e) {}
+            }
+          });
+      }
     } else {
       if (isNative) { try { NativeAudio.pause(); } catch(e){} }
       else if (audioRef.current) { audioRef.current.pause(); audioRef.current.src = ''; }
+      if (youtubePlayerRef.current?.stopVideo) {
+        try { youtubePlayerRef.current.stopVideo(); } catch (e) {}
+      }
     }
-  }, [state.currentSong?.id]);
+  }, [state.currentSong?.queueId, state.currentSong?.id]);
 
   // Handle Play/Pause synchronization
   useEffect(() => {
     const playing = state.isPlaying && !localPauseRef.current;
-    if (isNative) {
-      if (playing) { try { NativeAudio.resume(); } catch(e){} }
-      else { try { NativeAudio.pause(); } catch(e){} }
-    } else {
-      if (!audioRef.current || !audioRef.current.src) return;
-      if (playing) { audioRef.current.play().catch(() => {}); }
-      else { audioRef.current.pause(); }
-    }
-  }, [state.isPlaying, isLocallyPaused]);
+    syncPlaybackState(playing);
+  }, [state.isPlaying, isLocallyPaused, webPlaybackMode]);
 
 
 
@@ -528,6 +579,39 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
         }}
         style={{ display: 'none' }}
       />
+
+      {!isNative && state.currentSong && isYoutubeFallback && (
+        <div style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', opacity: 0, pointerEvents: 'none' }}>
+          <YouTube
+            videoId={state.currentSong.id}
+            opts={{
+              width: '1',
+              height: '1',
+              playerVars: {
+                autoplay: state.isPlaying && !localPauseRef.current ? 1 : 0,
+                controls: 0,
+                disablekb: 1,
+                fs: 0,
+                rel: 0,
+                start: state.currentTime > 0 ? state.currentTime : 0
+              }
+            }}
+            onReady={(event: any) => {
+              youtubePlayerRef.current = event.target;
+              try {
+                event.target.seekTo(state.currentTime > 0 ? state.currentTime : 0, true);
+                if (state.isPlaying && !localPauseRef.current) event.target.playVideo();
+                else event.target.pauseVideo();
+              } catch (e) {}
+            }}
+            onStateChange={(event: any) => {
+              if (event.data === 0) {
+                socket.emit('auto_skip');
+              }
+            }}
+          />
+        </div>
+      )}
 
       {/* TOP NAV */}
       <nav className="jam-navbar">

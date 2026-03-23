@@ -103,6 +103,15 @@ const searchYoutube = async (query) => {
     }));
 };
 
+const YOUTUBE_REQUEST_HEADERS = [
+  "referer:youtube.com",
+  "user-agent:Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+];
+
+if (process.env.YOUTUBE_COOKIE) {
+  YOUTUBE_REQUEST_HEADERS.push(`cookie:${process.env.YOUTUBE_COOKIE}`);
+}
+
 const extractAudioUrl = (videoId) => new Promise(async (resolve, reject) => {
   const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
 
@@ -112,10 +121,8 @@ const extractAudioUrl = (videoId) => new Promise(async (resolve, reject) => {
       dumpSingleJson: true,
       noWarnings: true,
       noCheckCertificates: true,
-      addHeader: [
-        "referer:youtube.com",
-        "user-agent:Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-      ]
+      extractorArgs: "youtube:player_client=android,web",
+      addHeader: YOUTUBE_REQUEST_HEADERS
     });
     const requestedDownloads = Array.isArray(info.requested_downloads) ? info.requested_downloads : [];
     const formats = Array.isArray(info.formats) ? info.formats : [];
@@ -137,7 +144,8 @@ const extractAudioUrl = (videoId) => new Promise(async (resolve, reject) => {
       headers: bestAudio.http_headers || info.http_headers || {}
     });
   } catch (error) {
-    reject(new Error(error?.stderr || error?.message || "yt-dlp execution failed"));
+    const message = error?.stderr || error?.message || "yt-dlp execution failed";
+    reject(new Error(message));
   }
 });
 

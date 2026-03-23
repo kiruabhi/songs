@@ -9,6 +9,16 @@ try {
   Object.defineProperty(document, 'visibilityState', { get: () => 'visible' });
 } catch (e) {}
 
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations()
+    .then((registrations) => {
+      registrations.forEach((registration) => {
+        registration.unregister().catch(() => {});
+      });
+    })
+    .catch(() => {});
+}
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <App />
