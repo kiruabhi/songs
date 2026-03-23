@@ -8,6 +8,8 @@ import com.getcapacitor.annotation.CapacitorPlugin;
 import android.content.Intent;
 import android.content.Context;
 import android.os.Build;
+import com.getcapacitor.JSObject;
+import java.util.Iterator;
 
 @CapacitorPlugin(name = "NativeAudio")
 public class NativeAudioPlugin extends Plugin {
@@ -17,6 +19,7 @@ public class NativeAudioPlugin extends Plugin {
         String url = call.getString("url");
         String title = call.getString("title");
         String artist = call.getString("artist");
+        JSObject headers = call.getObject("headers");
 
         Context context = getContext();
         Intent intent = new Intent(context, BackgroundAudioService.class);
@@ -24,6 +27,16 @@ public class NativeAudioPlugin extends Plugin {
         intent.putExtra("url", url);
         intent.putExtra("title", title != null ? title : "Unknown Title");
         intent.putExtra("artist", artist != null ? artist : "Unknown Artist");
+        if (headers != null) {
+            Iterator<String> keys = headers.keys();
+            while (keys.hasNext()) {
+                String key = keys.next();
+                String value = headers.optString(key, null);
+                if (value != null) {
+                    intent.putExtra("header_" + key, value);
+                }
+            }
+        }
         
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             context.startForegroundService(intent);

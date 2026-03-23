@@ -457,7 +457,12 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
           if (data.url) {
             if (isNative) {
               try {
-                NativeAudio.playStream({ url: data.url, title: state.currentSong?.title, artist: state.currentSong?.author });
+                NativeAudio.playStream({
+                  url: data.url,
+                  title: state.currentSong?.title,
+                  artist: state.currentSong?.author,
+                  headers: data.headers || {}
+                });
                 if (state.currentTime > 0) NativeAudio.seek({ time: state.currentTime });
               } catch(e) {}
             } else {

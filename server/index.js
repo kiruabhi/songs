@@ -128,8 +128,10 @@ const extractAudioUrl = (videoId) => new Promise((resolve, reject) => {
 
     try {
       const info = JSON.parse(stdout);
+      const requestedDownloads = Array.isArray(info.requested_downloads) ? info.requested_downloads : [];
       const formats = Array.isArray(info.formats) ? info.formats : [];
       const bestAudio =
+        requestedDownloads.find(f => f?.url) ||
         formats.find(f => f.acodec !== "none" && f.vcodec === "none" && f.ext === "m4a" && f.url) ||
         formats.find(f => f.acodec !== "none" && f.vcodec === "none" && f.url) ||
         formats.find(f => f.acodec !== "none" && f.url);
@@ -142,7 +144,8 @@ const extractAudioUrl = (videoId) => new Promise((resolve, reject) => {
       resolve({
         url: bestAudio.url,
         mimeType: bestAudio.mimeType || bestAudio.ext || "audio/mp4",
-        formatId: bestAudio.format_id || null
+        formatId: bestAudio.format_id || null,
+        headers: bestAudio.http_headers || info.http_headers || {}
       });
     } catch (parseError) {
       reject(parseError);
@@ -166,7 +169,12 @@ app.get("/api/stream-url/:videoId", async (req, res) => {
     const stream = await extractAudioUrl(videoId);
     if (stream && stream.url) {
       console.log(`Success: Found stream URL for ${videoId}`);
-      res.json({ url: stream.url, mimeType: stream.mimeType, formatId: stream.formatId });
+      res.json({
+        url: stream.url,
+        mimeType: stream.mimeType,
+        formatId: stream.formatId,
+        headers: stream.headers || {}
+      });
     } else {
       console.log(`No stream URL found for ${videoId}.`);
       res.status(404).json({ error: "No stream found for this video." });

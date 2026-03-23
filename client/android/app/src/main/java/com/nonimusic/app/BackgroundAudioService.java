@@ -11,6 +11,7 @@ import android.media.AudioFocusRequest;
 import android.media.AudioManager;
 import android.media.AudioAttributes;
 import android.media.MediaPlayer;
+import android.net.Uri;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.PowerManager;
@@ -18,6 +19,9 @@ import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import androidx.core.app.NotificationCompat;
+import android.os.Bundle;
+import java.util.HashMap;
+import java.util.Map;
 
 public class BackgroundAudioService extends Service {
     private static final String CHANNEL_ID = "NoniMusicChannel";
@@ -30,6 +34,7 @@ public class BackgroundAudioService extends Service {
     private boolean playWhenReady = false;
     private int pendingSeekSeconds = 0;
     private String currentUrl;
+    private Map<String, String> currentHeaders = new HashMap<>();
 
     private String currentTitle = "Noni Music";
     private String currentArtist = "Live Background";
@@ -61,7 +66,7 @@ public class BackgroundAudioService extends Service {
             String url = intent.getStringExtra("url");
             currentTitle = intent.getStringExtra("title");
             currentArtist = intent.getStringExtra("artist");
-            playStream(url);
+            playStream(url, extractHeaders(intent));
         } else if ("ACTION_PAUSE".equals(action)) {
             playWhenReady = false;
             pausePlayback();
@@ -76,7 +81,24 @@ public class BackgroundAudioService extends Service {
         return START_STICKY; // Extremely important for Android to auto-restart it if killed!
     }
 
-    private void playStream(String url) {
+    private Map<String, String> extractHeaders(Intent intent) {
+        Map<String, String> headers = new HashMap<>();
+        Bundle extras = intent.getExtras();
+        if (extras == null) {
+            return headers;
+        }
+        for (String key : extras.keySet()) {
+            if (key != null && key.startsWith("header_")) {
+                String value = intent.getStringExtra(key);
+                if (value != null && !value.isEmpty()) {
+                    headers.put(key.substring("header_".length()), value);
+                }
+            }
+        }
+        return headers;
+    }
+
+    private void playStream(String url, Map<String, String> headers) {
         if (url == null || url.isEmpty()) {
             updateNotificationAndState(PlaybackStateCompat.STATE_ERROR);
             return;
@@ -91,6 +113,7 @@ public class BackgroundAudioService extends Service {
         try {
             releasePlayer();
             currentUrl = url;
+            currentHeaders = headers != null ? new HashMap<>(headers) : new HashMap<>();
             isPrepared = false;
             playWhenReady = true;
             mediaPlayer = new MediaPlayer();
@@ -98,7 +121,11 @@ public class BackgroundAudioService extends Service {
                     .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
                     .setUsage(AudioAttributes.USAGE_MEDIA).build());
             mediaPlayer.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
-            mediaPlayer.setDataSource(url);
+            if (currentHeaders.isEmpty()) {
+                mediaPlayer.setDataSource(url);
+            } else {
+                mediaPlayer.setDataSource(getApplicationContext(), Uri.parse(url), currentHeaders);
+            }
             mediaPlayer.setOnPreparedListener(mp -> {
                 isPrepared = true;
                 if (pendingSeekSeconds > 0) {
