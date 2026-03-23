@@ -9,12 +9,14 @@ import android.content.pm.ServiceInfo;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.PowerManager;
+import android.support.v4.media.session.MediaSessionCompat;
 
 import androidx.core.app.NotificationCompat;
 
 public class BackgroundAudioService extends Service {
     private static final String CHANNEL_ID = "NoniMusicChannel";
     private PowerManager.WakeLock wakeLock;
+    private MediaSessionCompat mediaSession;
 
     @Override
     public void onCreate() {
@@ -27,10 +29,17 @@ public class BackgroundAudioService extends Service {
             wakeLock.acquire();
         }
 
+        // Initialize Native Media Session to tell Android we are a true Media Player
+        mediaSession = new MediaSessionCompat(this, "NoniMusicSession");
+        mediaSession.setActive(true);
+
         Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle("Noni Music")
-                .setContentText("Playing perfect background audio...")
+                .setContentText("Playing seamlessly in background")
                 .setSmallIcon(android.R.drawable.ic_media_play)
+                // THE CRITICAL FIX: Treat this specifically as a Music Player UI
+                .setStyle(new androidx.media.app.NotificationCompat.MediaStyle()
+                        .setMediaSession(mediaSession.getSessionToken()))
                 .setOngoing(true)
                 .build();
 
@@ -59,6 +68,9 @@ public class BackgroundAudioService extends Service {
     public void onDestroy() {
         if (wakeLock != null && wakeLock.isHeld()) {
             wakeLock.release();
+        }
+        if (mediaSession != null) {
+            mediaSession.release();
         }
         super.onDestroy();
     }
