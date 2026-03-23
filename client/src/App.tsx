@@ -5,7 +5,7 @@ import { Music, Plus, Play, Pause, SkipForward, SkipBack, Copy, Search, Check, D
 import './index.css';
 import './dashboard.css';
 import { registerPlugin } from '@capacitor/core';
-const NativeAudio = registerPlugin('NativeAudio');
+const NativeAudio: any = registerPlugin('NativeAudio');
 
 
 const BACKEND_URL = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '');
@@ -165,7 +165,7 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
   const [activeTab, setActiveTab] = useState<'room' | 'liked' | 'admin' | 'recommend'>('room');
   const [likedSongs, setLikedSongs] = useState<Song[]>([]);
   const audioRef = useRef<HTMLAudioElement>(null);
-  const [loadingAudio, setLoadingAudio] = useState(false);
+
   const [copied, setCopied] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Song[]>([]);
@@ -403,21 +403,17 @@ function Room({ roomId, socket, user, token, onLogout }: { roomId: string, socke
   // --- DIRECT NATIVE AUDIO STREAM FETCHER ---
   useEffect(() => {
     if (state.currentSong) {
-      setLoadingAudio(true);
       fetch(`${BACKEND_URL}/api/stream-url/${state.currentSong.id}`)
         .then(res => res.json())
         .then(data => {
           if (data.url) {
-            if (state.isPlaying && !localPauseRef.current) {
-                try {
-                    NativeAudio.playStream({ url: data.url, title: state.currentSong?.title, artist: state.currentSong?.author });
-                    if (state.currentTime > 0) NativeAudio.seek({ time: state.currentTime });
-                } catch(e) {}
-            }
+            try {
+              NativeAudio.playStream({ url: data.url, title: state.currentSong?.title, artist: state.currentSong?.author });
+              if (state.currentTime > 0) NativeAudio.seek({ time: state.currentTime });
+            } catch(e) {}
           }
-          setLoadingAudio(false);
         })
-        .catch(() => setLoadingAudio(false));
+        .catch(() => {});
     } else {
       try { NativeAudio.pause(); } catch(e){}
     }

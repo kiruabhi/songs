@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Music, Plus, Play, Pause, SkipForward, SkipBack, Search, Compass, LogOut, Heart, Library, ListMusic, Home } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Music, Plus, Play, Pause, SkipForward, SkipBack, Search, LogOut, Heart, Library, ListMusic, Home } from 'lucide-react';
 import './Dashboard.css';
 import { registerPlugin } from '@capacitor/core';
-const NativeAudio = registerPlugin('NativeAudio');
+const NativeAudio: any = registerPlugin('NativeAudio');
 
 const BACKEND_URL = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '');
 
@@ -12,7 +12,7 @@ export default function Dashboard({ user, onLogout, onCreate, onJoin }: any) {
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [recommendations, setRecommendations] = useState<any[]>([]);
   const [likedSongs, setLikedSongs] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
+
   
   const [localQueue, setLocalQueue] = useState<any[]>([]);
   const [currentSong, setCurrentSong] = useState<any | null>(null);
@@ -22,11 +22,10 @@ export default function Dashboard({ user, onLogout, onCreate, onJoin }: any) {
   const [joinId, setJoinId] = useState('');
   
   useEffect(() => {
-    setLoading(true);
     fetch(`${BACKEND_URL}/api/recommendations`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } })
       .then(r => r.json())
-      .then(data => { if(Array.isArray(data)) setRecommendations(data); setLoading(false); })
-      .catch(() => setLoading(false));
+      .then(data => { if(Array.isArray(data)) setRecommendations(data); })
+      .catch(() => {});
 
     fetch(`${BACKEND_URL}/api/likes`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } })
       .then(r => r.json())
@@ -37,13 +36,11 @@ export default function Dashboard({ user, onLogout, onCreate, onJoin }: any) {
   const search = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!searchQuery) return;
-    setLoading(true);
     try {
       const res = await fetch(`${BACKEND_URL}/api/search?q=${encodeURIComponent(searchQuery)}`);
       const data = await res.json();
       setSearchResults(data);
     } catch (err) { }
-    setLoading(false);
   };
 
   const playLocal = (song: any) => {
